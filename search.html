@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Catalogue - D4FILMS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header id="navbar" class="scrolled">
+        <a href="index.html" class="logo">D4<span>FILMS</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="search.html" class="active">Catalog</a>
+            <a href="watchlist.html">Watchlist</a>
+        </nav>
+    </header>
+
+    <div class="search-container">
+        <input type="text" class="search-box" id="searchInput" placeholder="Type title, keywords or actor names..." autofocus autocomplete="off">
+    </div>
+
+    <main>
+        <h2 class="section-title" id="searchTitle">Discover Content</h2>
+        <div class="movie-grid" id="searchResults"></div>
+    </main>
+
+    <script src="js/script.js"></script>
+    <script src="js/search.js"></script>
+</body>
+</html>
