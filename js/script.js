@@ -1,114 +1,110 @@
-// الرابط الصحيح والمضمون للـ Proxy فـ Cloudflare Pages
 const API_PROXY = '/tmdb';
+let heroMovies = [];
+let currentSlideIndex = 0;
+let sliderInterval;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // تشغيل الصفحة الرئيسية إذا كان العنصر موجوداً
-    if (document.getElementById('mainHero')) {
-        initHomePage();
-    }
+    // تشغيل جلب البيانات الأساسية
+    initPlatform();
 });
 
-// دالة الاتصال بالـ Proxy بجلب البيانات كاملة
 async function callProxy(endpoint, additionalParams = {}) {
     const queryParams = new URLSearchParams({ endpoint, ...additionalParams });
     try {
         const response = await fetch(`${API_PROXY}?${queryParams.toString()}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
     } catch (err) {
-        console.error("Proxy integration failed:", err);
+        console.error("Proxy failure:", err);
         return null;
     }
 }
 
-// تشغيل جلب البيانات والـ Skeletons
-async function initHomePage() {
-    const trendingContainer = document.getElementById('trendingContainer');
-    const recommendedGrid = document.getElementById('recommendedGrid');
+async function initPlatform() {
+    // 1. صناعة شبكات الهياكل (Skeletons) بصفة مؤقتة
+    generateSkeletons();
 
-    // 1. عرض مربعات التحميل (Skeletons) المريقلة بحال FMovies
-    if (trendingContainer) {
-        trendingContainer.innerHTML = Array(5).fill('<div class="trending-card skeleton-box" style="min-width:260px; height:150px; background:#111;"></div>').join('');
-    }
-    if (recommendedGrid) {
-        recommendedGrid.innerHTML = Array(8).fill(`
-            <div class="poster-card">
-                <div class="poster-wrapper skeleton-box" style="padding-top:150%; background:#111;"></div>
-                <div style="padding:10px 0;"><div class="skeleton-box" style="height:15px; width:70%; margin-bottom:5px;"></div><div class="skeleton-box" style="height:12px; width:40%;"></div></div>
-            </div>
-        `).join('');
-    }
-
-    // 2. جلب أفلام الـ Trending (البارز الفوق والشريط الأفقي)
+    // 2. جلب الأفلام للـ Hero وللأقسام المتعددة
     const trendingData = await callProxy('trending/movie/day');
-    if (trendingData && trendingData.results && trendingData.results.length > 0) {
-        setupHero(trendingData.results[0]);
-        renderTrendingTrack(trendingData.results.slice(1, 11)); // أول فيلم فالهيرو، والخرين فالشريط
-    }
-
-    // 3. جلب الأفلام المقترحة (Recommended)
+    const topRatedData = await callProxy('movie/top_rated');
     const popularData = await callProxy('movie/popular');
-    if (popularData && popularData.results) {
-        renderRecommendedGrid(popularData.results);
+    const actionData = await callProxy('discover/movie', { with_genres: '28' }); // 28 هو كود أفلام الأكشن
+
+    // 3. رندرة الـ Hero السلايدر التلقائي
+    if (trendingData && trendingData.results && trendingData.results.length > 0) {
+        heroMovies = trendingData.results.slice(0, 5); // تدوير أعلى 5 أفلام رائجة
+        setupHeroSlider();
+        
+        // رندرة سيكشن Trending (20 فيلم كاملين)
+        renderGrid('trendingGrid', trendingData.results);
     }
+
+    // 4. رندرة باقي الأقسام بكميات محترمة
+    if (topRatedData && topRatedData.results) renderGrid('topRatedGrid', topRatedData.results);
+    if (popularData && popularData.results) renderGrid('popularGrid', popularData.results);
+    if (actionData && actionData.results) renderGrid('actionGrid', actionData.results);
 }
 
-// إعداد الهيرو السينمائي الكبير (Hero Banner)
-function setupHero(movie) {
-    const hero = document.getElementById('mainHero');
-    const details = document.getElementById('heroDetails');
-    if (!hero || !details) return;
+// إعداد السلايدر التلقائي كل 4 ثواني
+function setupHeroSlider() {
+    const sliderContainer = document.getElementById('heroSliderContainer');
+    if (!sliderContainer) return;
 
-    hero.style.backgroundImage = `url('https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}')`;
-    
-    // جلب السنة فقط من تاريخ الإصدار
-    const releaseYear = movie.release_date ? movie.release_date.split('-')[0] : '2026';
-
-    details.innerHTML = `
-        <h1 class="hero-title">${movie.title}</h1>
-        <div class="hero-meta-row">
-            <span class="badge-cyan">4K</span>
-            <span class="badge-outline">TV-MA</span>
-            <span><i class="fa-solid fa-star rating-star"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : '8.5'}</span>
-            <span>${releaseYear}</span>
-            <span>1h 45min</span>
-        </div>
-        <button class="btn-watch" onclick="window.location.href='movie.html?id=${movie.id}'">
-            <i class="fa-solid fa-circle-play"></i> Watch Now
-        </button>
-    `;
-}
-
-// رندرة شريط الأفلام الرائجة أفقياً (Trending Track)
-function renderTrendingTrack(movies) {
-    const container = document.getElementById('trendingContainer');
-    if (!container) return;
-
-    container.innerHTML = movies.map(movie => `
-        <div class="trending-card" style="background-image: url('https://image.tmdb.org/t/p/w780${movie.backdrop_path || movie.poster_path}')" onclick="window.location.href='movie.html?id=${movie.id}'">
-            <div class="trending-overlay">
-                <div class="card-title" style="font-weight:600; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">${movie.title}</div>
+    sliderContainer.innerHTML = heroMovies.map((movie, index) => {
+        const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
+        const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '8.5';
+        const backdrop = `https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}`;
+        
+        return `
+            <div class="hero-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${backdrop}')">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">${movie.title}</h1>
+                    <div class="hero-meta">
+                        <span class="badge-cyan">4K</span>
+                        <span class="badge-outline">TV-MA</span>
+                        <span><i class="fa-solid fa-star rating-star"></i> ${rating}</span>
+                        <span>${year}</span>
+                        <span>Movie</span>
+                    </div>
+                    <button class="btn-watch" onclick="window.location.href='movie.html?id=${movie.id}'">
+                        <i class="fa-solid fa-circle-play"></i> Watch Now
+                    </button>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
+
+    // تدوير السلايدر كل 4 ثواني بالظبط
+    if (sliderInterval) clearInterval(sliderInterval);
+    sliderInterval = setInterval(nextSlide, 4000);
 }
 
-// رندرة شبكة الأفلام المقترحة (Recommended Grid)
-function renderRecommendedGrid(movies) {
-    const grid = document.getElementById('recommendedGrid');
+function nextSlide() {
+    const slides = document.querySelectorAll('.hero-slide');
+    if (slides.length === 0) return;
+
+    slides[currentSlideIndex].classList.remove('active');
+    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+    slides[currentSlideIndex].classList.add('active');
+}
+
+// رندرة وتعبئة شبكة الأفلام بالبيانات الحقيقية
+function renderGrid(containerId, movies) {
+    const grid = document.getElementById(containerId);
     if (!grid) return;
 
     grid.innerHTML = movies.map(movie => {
         const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
+        const poster = `https://image.tmdb.org/t/p/w342${movie.poster_path}`;
+        
         return `
-            <div class="poster-card" onclick="window.location.href='movie.html?id=${movie.id}'">
-                <div class="poster-wrapper" style="background-image: url('https://image.tmdb.org/t/p/w342${movie.poster_path}')">
-                    <div class="hd-ribbon">HD</div>
+            <div class="movie-card" onclick="window.location.href='movie.html?id=${movie.id}'">
+                <div class="poster-box" style="background-image: url('${poster}')">
+                    <div class="hd-tag">HD</div>
                 </div>
-                <div class="card-details">
-                    <div class="card-meta-line">
+                <div class="card-info">
+                    <div class="card-meta">
                         <span>${year}</span>
                         <span>• Movie</span>
                     </div>
@@ -117,4 +113,23 @@ function renderRecommendedGrid(movies) {
             </div>
         `;
     }).join('');
+}
+
+// دالة توليد مربعات التحمل (Skeletons) لجمالية بصرية أثناء الجلب
+function generateSkeletons() {
+    const grids = ['trendingGrid', 'topRatedGrid', 'popularGrid', 'actionGrid'];
+    grids.forEach(id => {
+        const grid = document.getElementById(id);
+        if (grid) {
+            grid.innerHTML = Array(12).fill(`
+                <div class="movie-card">
+                    <div class="poster-box skeleton"></div>
+                    <div class="card-info">
+                        <div class="skeleton" style="height:12px; width:40%; margin-bottom:6px; border-radius:3px;"></div>
+                        <div class="skeleton" style="height:14px; width:80%; border-radius:3px;"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    });
 }
