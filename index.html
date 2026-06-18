@@ -3,31 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D4FILMS - Watch Movies Online</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>D4FILMS - Watch Movies & TV Shows</title>
+    <!-- روابط الخطوط وأيقونات FontAwesome الاحترافية الشبيهة بـ FMovies -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <!-- الهيدر الرئيسي مع اللوغو وأيقونة البحث -->
     <header>
-        <div class="header-left">
-            <i class="fa-solid fa-bars menu-toggle"></i>
-            <a href="index.html" style="text-decoration:none;"><div class="logo-box">D4FILMS</div></a>
+        <a href="index.html" class="logo">D4<span>FILMS</span></a>
+        <div class="nav-actions">
+            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='search.html'"></i>
+            <i class="fa-solid fa-bars"></i>
         </div>
-        <a href="search.html" class="search-trigger"><i class="fa-solid fa-magnifying-glass"></i></a>
     </header>
 
-    <div class="hero-banner" id="mainHero">
-        <div class="hero-overlay"></div>
-        <div class="hero-details" id="heroDetails"></div>
+    <!-- حاوية السلايدر التلقائي الذي يتبدل كل 4 ثواني -->
+    <div class="hero-slider-container" id="heroSliderContainer">
+        <!-- الجافاسكريبت سيعمر السلايدات هنا ديناميكياً -->
     </div>
 
-    <h2 class="section-headline"><i class="fa-solid fa-fire"></i> Trending Now <i class="fa-solid fa-fire"></i></h2>
-    <div class="horizontal-track" id="trendingContainer"></div>
+    <!-- المحتوى الرئيسي والأقسام المتعددة للأفلام -->
+    <main class="main-content">
+        
+        <!-- 1. سيكشن الأفلام الرائجة -->
+        <div class="section-wrapper">
+            <div class="section-header">
+                <i class="fa-solid fa-fire section-icon"></i>
+                <h2 class="section-title">Trending Now</h2>
+            </div>
+            <div class="movies-grid" id="trendingGrid">
+                <!-- الأفلام تظهر هنا تلقائياً -->
+            </div>
+        </div>
 
-    <h2 class="section-headline"><i class="fa-solid fa-house"></i> Recommended</h2>
-    <div class="movie-grid" id="recommendedGrid"></div>
+        <!-- 2. سيكشن الأفلام الأعلى تقييماً -->
+        <div class="section-wrapper">
+            <div class="section-header">
+                <i class="fa-solid fa-star section-icon"></i>
+                <h2 class="section-title">Top Rated</h2>
+            </div>
+            <div class="movies-grid" id="topRatedGrid">
+                <!-- الأفلام تظهر هنا تلقائياً -->
+            </div>
+        </div>
 
+        <!-- 3. سيكشن الأفلام الشعبية -->
+        <div class="section-wrapper">
+            <div class="section-header">
+                <i class="fa-solid fa-heart section-icon"></i>
+                <h2 class="section-title">Popular Movies</h2>
+            </div>
+            <div class="movies-grid" id="popularGrid">
+                <!-- الأفلام تظهر هنا تلقائياً -->
+            </div>
+        </div>
+
+        <!-- 4. سيكشن أفلام الأكشن والإثارة -->
+        <div class="section-wrapper">
+            <div class="section-header">
+                <i class="fa-solid fa-gun section-icon"></i>
+                <h2 class="section-title">Action & Thriller</h2>
+            </div>
+            <div class="movies-grid" id="actionGrid">
+                <!-- الأفلام تظهر هنا تلقائياً -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- استدعاء سكريبت التشغيل في النهاية لضمان سرعة التحميل -->
     <script src="js/script.js"></script>
 </body>
 </html>
