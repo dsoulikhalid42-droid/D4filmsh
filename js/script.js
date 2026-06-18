@@ -4,7 +4,6 @@ let currentSlideIndex = 0;
 let sliderInterval;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // تشغيل جلب البيانات الأساسية
     initPlatform();
 });
 
@@ -24,28 +23,25 @@ async function initPlatform() {
     // 1. صناعة شبكات الهياكل (Skeletons) بصفة مؤقتة
     generateSkeletons();
 
-    // 2. جلب الأفلام للـ Hero وللأقسام المتعددة
+    // 2. جلب البيانات من الـ API
     const trendingData = await callProxy('trending/movie/day');
     const topRatedData = await callProxy('movie/top_rated');
     const popularData = await callProxy('movie/popular');
-    const actionData = await callProxy('discover/movie', { with_genres: '28' }); // 28 هو كود أفلام الأكشن
+    const actionData = await callProxy('discover/movie', { with_genres: '28' });
 
-    // 3. رندرة الـ Hero السلايدر التلقائي
+    // 3. رندرة الـ Hero السلايدر
     if (trendingData && trendingData.results && trendingData.results.length > 0) {
-        heroMovies = trendingData.results.slice(0, 5); // تدوير أعلى 5 أفلام رائجة
+        heroMovies = trendingData.results.slice(0, 5);
         setupHeroSlider();
-        
-        // رندرة سيكشن Trending (20 فيلم كاملين)
         renderGrid('trendingGrid', trendingData.results);
     }
 
-    // 4. رندرة باقي الأقسام بكميات محترمة
+    // 4. رندرة باقي الأقسام
     if (topRatedData && topRatedData.results) renderGrid('topRatedGrid', topRatedData.results);
     if (popularData && popularData.results) renderGrid('popularGrid', popularData.results);
     if (actionData && actionData.results) renderGrid('actionGrid', actionData.results);
 }
 
-// إعداد السلايدر التلقائي كل 4 ثواني
 function setupHeroSlider() {
     const sliderContainer = document.getElementById('heroSliderContainer');
     if (!sliderContainer) return;
@@ -75,7 +71,6 @@ function setupHeroSlider() {
         `;
     }).join('');
 
-    // تدوير السلايدر كل 4 ثواني بالظبط
     if (sliderInterval) clearInterval(sliderInterval);
     sliderInterval = setInterval(nextSlide, 4000);
 }
@@ -89,7 +84,6 @@ function nextSlide() {
     slides[currentSlideIndex].classList.add('active');
 }
 
-// رندرة وتعبئة شبكة الأفلام بالبيانات الحقيقية
 function renderGrid(containerId, movies) {
     const grid = document.getElementById(containerId);
     if (!grid) return;
@@ -115,7 +109,6 @@ function renderGrid(containerId, movies) {
     }).join('');
 }
 
-// دالة توليد مربعات التحمل (Skeletons) لجمالية بصرية أثناء الجلب
 function generateSkeletons() {
     const grids = ['trendingGrid', 'topRatedGrid', 'popularGrid', 'actionGrid'];
     grids.forEach(id => {
