@@ -1,355 +1,296 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+/* استيراد الخطوط الاحترافية الشبيهة بالصورة تماماً */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg-main: #000000;
-    --bg-card: #0B0B0B;
-    --accent: #00BCD4;
-    --accent-secondary: #4FC3F7;
-    --text-main: #FFFFFF;
-    --text-muted: #BDBDBD;
-    --font-family: 'Inter', sans-serif;
+    --bg-color: #0b0c10;
+    --card-bg: #14161d;
+    --primary-cyan: #00b4d8;
+    --text-white: #ffffff;
+    --text-gray: #9ca3af;
+    --font-main: 'Inter', sans-serif;
+    --font-heading: 'Poppins', sans-serif;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: var(--font-family);
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
+    background-color: var(--bg-color);
+    color: var(--text-white);
+    font-family: var(--font-main);
     overflow-x: hidden;
-    padding-bottom: 60px;
+    line-height: 1.5;
 }
 
-/* Header & FMovies Style Logo */
+/* الهيدر واللوغو */
 header {
-    position: fixed;
-    top: 0; left: 0; width: 100%;
-    height: 60px;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 0 4%;
-    z-index: 1000;
+    align-items: center;
+    padding: 15px 5%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
 }
 
-.header-left {
+.logo {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-white);
+    text-decoration: none;
+}
+
+.logo span {
+    color: var(--primary-cyan);
+}
+
+.nav-actions {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
+    font-size: 20px;
 }
 
-.menu-toggle {
-    font-size: 1.4rem;
-    color: var(--text-main);
+.nav-actions i {
     cursor: pointer;
+    transition: color 0.3s;
 }
 
-.logo-box {
-    background-color: var(--accent);
-    color: #FFFFFF;
-    font-weight: 900;
-    font-size: 1.3rem;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
-    display: inline-block;
+.nav-actions i:hover {
+    color: var(--primary-cyan);
 }
 
-.search-trigger {
-    font-size: 1.3rem;
-    color: var(--text-main);
-    cursor: pointer;
-}
-
-/* Cinematic Hero Banner */
-.hero-banner {
+/* الهيرو سيكشن الديناميكي السلايدر */
+.hero-slider-container {
+    position: relative;
     width: 100%;
-    height: 65vh;
+    height: 70vh; /* توازن مثالي للهاتف */
+    background-color: #000;
+    overflow: hidden;
+}
+
+/* التجاوب مع الحاسوب ليكون الهيرو أكبر سينمائياً */
+@media (min-width: 992px) {
+    .hero-slider-container {
+        height: 85vh;
+    }
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-size: cover;
     background-position: center top;
-    position: relative;
+    opacity: 0;
+    transition: opacity 1s ease-in-out; /* حركة ناعمة خلال 1 ثانية عند التبديل */
     display: flex;
     align-items: flex-end;
-    padding: 0 4% 4% 4%;
+}
+
+.hero-slide.active {
+    opacity: 1;
+    z-index: 1;
 }
 
 .hero-overlay {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to top, #000000 15%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.8) 100%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, var(--bg-color) 10%, rgba(11, 12, 16, 0.4) 50%, rgba(0,0,0,0.7) 100%);
 }
 
-.hero-details {
+.hero-content {
     position: relative;
-    z-index: 10;
-    text-align: center;
+    z-index: 2;
+    padding: 0 5% 40px 5%;
+    max-width: 800px;
     width: 100%;
-    margin: 0 auto;
 }
 
 .hero-title {
-    font-size: 2.2rem;
+    font-family: var(--font-heading);
+    font-size: 28px;
     font-weight: 700;
-    text-transform: uppercase;
     margin-bottom: 12px;
-    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    line-height: 1.2;
 }
 
-.hero-meta-row {
+@media (min-width: 768px) {
+    .hero-title { font-size: 45px; }
+}
+
+.hero-meta {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 15px;
+    gap: 12px;
+    font-size: 13px;
+    color: #e5e7eb;
+    margin-bottom: 20px;
 }
 
 .badge-cyan {
-    background: var(--accent);
+    background-color: var(--primary-cyan);
     color: #000;
+    padding: 2px 6px;
     font-weight: 700;
-    font-size: 0.75rem;
-    padding: 1px 5px;
     border-radius: 4px;
+    font-size: 11px;
 }
 
 .badge-outline {
-    border: 1px solid var(--text-muted);
-    padding: 1px 5px;
+    border: 1px solid var(--text-gray);
+    padding: 1px 6px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 11px;
 }
 
 .rating-star {
-    color: #FFD700;
+    color: #ffb703;
 }
 
-/* Rounded Buttons */
 .btn-watch {
-    background-color: var(--accent);
-    color: #000000;
-    font-weight: 600;
-    font-size: 1.05rem;
-    padding: 12px 35px;
-    border-radius: 30px;
-    border: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    background-color: var(--primary-cyan);
+    color: #000;
+    border: none;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 30px;
     cursor: pointer;
-    transition: transform 0.2s;
+    font-family: var(--font-main);
+    transition: transform 0.2s, background-color 0.2s;
 }
 
 .btn-watch:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
+    background-color: #0096b4;
 }
 
-/* Section Title with Fire / Custom icons */
-.section-headline {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin: 25px 4% 15px 4%;
+/* الأقسام والمحتوى الحاضن لشبكات الأفلام */
+.main-content {
+    padding: 20px 5%;
+}
+
+.section-wrapper {
+    margin-bottom: 40px;
+}
+
+.section-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-.section-headline i {
-    color: var(--accent);
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-/* Horizontal Trending Track */
-.horizontal-track {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 0 4% 10px 4%;
-    scrollbar-width: none;
-}
-.horizontal-track::-webkit-scrollbar { display: none; }
-
-.trending-card {
-    min-width: 260px;
-    height: 150px;
-    border-radius: 6px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    flex-shrink: 0;
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
 }
 
-.trending-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 30%, transparent 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 12px;
+.section-icon {
+    color: var(--primary-cyan);
+    font-size: 18px;
 }
 
-/* Standard Premium Movie Grid */
-.movie-grid {
+/* شبكة الأفلام الذكية المريقلة المتجاوبة 100% */
+.movies-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* الهاتف: كاردات صغيرة وعريضة بذكاء تلقائي */
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
     gap: 15px;
-    padding: 0 4%;
 }
 
-@media(min-width: 600px) {
-    .movie-grid { grid-template-columns: repeat(4, 1fr); }
+/* البيسي والحاسوب: كاردات أكبر ومستفة بشكل احترافي */
+@media (min-width: 768px) {
+    .movies-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 20px;
+    }
 }
 
-.poster-card {
-    background: var(--bg-card);
-    border-radius: 6px;
+.movie-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
 }
 
-.poster-wrapper {
+.movie-card:hover {
+    transform: translateY(-5px);
+}
+
+.poster-box {
     position: relative;
     width: 100%;
-    padding-top: 150%; /* 2:3 Aspect Ratio */
+    padding-top: 145%; /* العبار الذهبي لملصق الفيلم */
     background-size: cover;
     background-position: center;
+    background-color: #111;
 }
 
-.hd-ribbon {
+.hd-tag {
     position: absolute;
-    top: 8px; left: 8px;
-    background: var(--accent);
+    top: 8px;
+    left: 8px;
+    background-color: var(--primary-cyan);
     color: #000;
-    font-size: 0.7rem;
+    font-size: 10px;
     font-weight: 700;
-    padding: 1px 4px;
-    border-radius: 2px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    z-index: 5;
 }
 
-.card-details {
-    padding: 8px 4px;
+.card-info {
+    padding: 10px;
 }
 
-.card-meta-line {
+.card-meta {
     display: flex;
     gap: 8px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: 11px;
+    color: var(--text-gray);
     margin-bottom: 4px;
 }
 
 .card-title {
-    font-size: 0.9rem;
+    font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* نقط ف لخر يلا كان الاسم طويل */
+    color: #f3f4f6;
 }
 
-/* Movie Details Layout */
-.details-main-poster {
-    width: 90%;
-    max-width: 450px;
-    margin: 70px auto 15px auto;
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
+/* سكيلتون لودينغ خفيف */
+.skeleton {
+    animation: skeleton-loading 1.5s infinite linear;
 }
-.details-main-poster img {
-    width: 100%;
-    display: block;
-}
-
-.center-play-trigger {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 4rem;
-    color: var(--accent);
-    opacity: 0.9;
-    cursor: pointer;
-}
-
-.action-row {
-    display: flex;
-    gap: 10px;
-    padding: 0 4%;
-    margin-bottom: 25px;
-}
-
-.btn-outline-action {
-    flex: 1;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--text-main);
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.info-block {
-    padding: 0 4%;
-    margin-bottom: 25px;
-}
-.info-desc {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.4rem;
-    margin-bottom: 15px;
-}
-
-.meta-spec-item {
-    font-size: 0.85rem;
-    margin-bottom: 6px;
-}
-.meta-spec-item span {
-    color: var(--text-muted);
-}
-
-/* Iframe Responsive Container */
-.player-container {
-    width: 100%;
-    padding: 0 4%;
-    margin: 70px 0 20px 0;
-    display: none;
-}
-.player-container.active { display: block; }
-.responsive-iframe {
-    position: relative;
-    padding-bottom: 56.25%;
-    height: 0;
-    overflow: hidden;
-    border-radius: 6px;
-    background: #000;
-}
-.responsive-iframe iframe {
-    position: absolute;
-    top:0; left:0; width:100%; height:100%;
-    border: none;
-}
-
-/* Skeleton Loading Animation */
-.skeleton-box {
-    background: #121212;
-    animation: pulse 1.5s infinite ease-in-out;
-}
-@keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
+@keyframes skeleton-loading {
+    0% { background-color: #151821; }
+    50% { background-color: #222633; }
+    100% { background-color: #151821; }
 }
