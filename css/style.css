@@ -1,0 +1,355 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+    --bg-main: #000000;
+    --bg-card: #0B0B0B;
+    --accent: #00BCD4;
+    --accent-secondary: #4FC3F7;
+    --text-main: #FFFFFF;
+    --text-muted: #BDBDBD;
+    --font-family: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    overflow-x: hidden;
+    padding-bottom: 60px;
+}
+
+/* Header & FMovies Style Logo */
+header {
+    position: fixed;
+    top: 0; left: 0; width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4%;
+    z-index: 1000;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-toggle {
+    font-size: 1.4rem;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.logo-box {
+    background-color: var(--accent);
+    color: #FFFFFF;
+    font-weight: 900;
+    font-size: 1.3rem;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.search-trigger {
+    font-size: 1.3rem;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+/* Cinematic Hero Banner */
+.hero-banner {
+    width: 100%;
+    height: 65vh;
+    background-size: cover;
+    background-position: center top;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 4% 4% 4%;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, #000000 15%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-details {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.hero-meta-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+
+.badge-cyan {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.badge-outline {
+    border: 1px solid var(--text-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.rating-star {
+    color: #FFD700;
+}
+
+/* Rounded Buttons */
+.btn-watch {
+    background-color: var(--accent);
+    color: #000000;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 12px 35px;
+    border-radius: 30px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-watch:hover {
+    transform: scale(1.03);
+}
+
+/* Section Title with Fire / Custom icons */
+.section-headline {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 25px 4% 15px 4%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.section-headline i {
+    color: var(--accent);
+}
+
+/* Horizontal Trending Track */
+.horizontal-track {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 0 4% 10px 4%;
+    scrollbar-width: none;
+}
+.horizontal-track::-webkit-scrollbar { display: none; }
+
+.trending-card {
+    min-width: 260px;
+    height: 150px;
+    border-radius: 6px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.trending-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 30%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px;
+}
+
+/* Standard Premium Movie Grid */
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 0 4%;
+}
+
+@media(min-width: 600px) {
+    .movie-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.poster-card {
+    background: var(--bg-card);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.poster-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 150%; /* 2:3 Aspect Ratio */
+    background-size: cover;
+    background-position: center;
+}
+
+.hd-ribbon {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: var(--accent);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.card-details {
+    padding: 8px 4px;
+}
+
+.card-meta-line {
+    display: flex;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Movie Details Layout */
+.details-main-poster {
+    width: 90%;
+    max-width: 450px;
+    margin: 70px auto 15px auto;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.details-main-poster img {
+    width: 100%;
+    display: block;
+}
+
+.center-play-trigger {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: var(--accent);
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.action-row {
+    display: flex;
+    gap: 10px;
+    padding: 0 4%;
+    margin-bottom: 25px;
+}
+
+.btn-outline-action {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.info-block {
+    padding: 0 4%;
+    margin-bottom: 25px;
+}
+.info-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.4rem;
+    margin-bottom: 15px;
+}
+
+.meta-spec-item {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+.meta-spec-item span {
+    color: var(--text-muted);
+}
+
+/* Iframe Responsive Container */
+.player-container {
+    width: 100%;
+    padding: 0 4%;
+    margin: 70px 0 20px 0;
+    display: none;
+}
+.player-container.active { display: block; }
+.responsive-iframe {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #000;
+}
+.responsive-iframe iframe {
+    position: absolute;
+    top:0; left:0; width:100%; height:100%;
+    border: none;
+}
+
+/* Skeleton Loading Animation */
+.skeleton-box {
+    background: #121212;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
