@@ -4,32 +4,28 @@ export async function onRequest(context) {
   const endpoint = url.searchParams.get("endpoint");
 
   if (!endpoint) {
-    return new Response(JSON.stringify({ error: "Missing endpoint" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(JSON.stringify({ error: "No endpoint" }), { status: 400 });
   }
 
-  const targetUrl = new URL(`https://api.themoviedb.org/3/${endpoint}`);
-  targetUrl.searchParams.set("api_key", env.TMDB_API_KEY);
+  // بناء الرابط نيشان مع الساروت المأخوذ من Cloudflare Settings
+  const tmdbUrl = `https://api.themoviedb.org/3/${endpoint}?api_key=${env.TMDB_API_KEY}`;
   
+  // زيادة أي پارامترات أخرى بحال الـ query ديال البحث
+  const finalUrl = new URL(tmdbUrl);
   for (const [key, value] of url.searchParams.entries()) {
     if (key !== "endpoint") {
-      targetUrl.searchParams.set(key, value);
+      finalUrl.searchParams.set(key, value);
     }
   }
 
   try {
-    const response = await fetch(targetUrl.toString());
-    const data = await response.json();
+    const res = await fetch(finalUrl.toString());
+    const data = await res.json();
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      }
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Failed to fetch data" }), { status: 500 });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
