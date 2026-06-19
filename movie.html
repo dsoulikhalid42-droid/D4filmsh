@@ -4,46 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch Movie - D4FILMS</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=1.2">
 </head>
-<body>
+<body class="movie-page-body">
 
+    <!-- الهيدر ثابت -->
     <header>
-        <div class="header-left">
-            <i class="fa-solid fa-arrow-left menu-toggle" onclick="window.location.href='index.html'"></i>
-            <div class="logo-box">D4FILMS</div>
+        <a href="index.html" class="logo">D4<span>FILMS</span></a>
+        <div class="nav-actions">
+            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='search.html'"></i>
+            <i class="fa-solid fa-bars"></i>
         </div>
-        <a href="search.html" class="search-trigger"><i class="fa-solid fa-magnifying-glass"></i></a>
     </header>
 
-    <div class="player-container" id="streamContainer">
-        <div class="responsive-iframe">
-            <iframe id="embedFrame" src="" allowfullscreen></iframe>
+    <!-- حاوية المشغل -->
+    <div class="player-container">
+        <div class="video-player-wrapper">
+            <!-- غيتعمر الـ iframe هنا بـ السكريبت تلقائياً بـ API ديال vidsrc أو الفلم المختار -->
+            <div id="playerPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--text-gray);">Loading Player...</div>
         </div>
     </div>
 
-    <div class="details-main-poster" id="posterArea">
-        <img id="mainPosterImg" src="" alt="Poster">
-        <i class="fa-solid fa-circle-play center-play-trigger" id="centerPlay"></i>
+    <!-- أزرار الأكشن التحت المشغل -->
+    <div class="player-buttons">
+        <button class="btn-player-action"><i class="fa-solid fa-play"></i> Watch Now</button>
+        <button class="btn-player-action"><i class="fa-solid fa-download"></i> Download</button>
     </div>
 
-    <div class="action-row">
-        <button class="btn-outline-action" id="watchAction"><i class="fa-solid fa-circle-play"></i> Watch Now</button>
-        <button class="btn-outline-action" id="downloadAction"><i class="fa-solid fa-download"></i> Download</button>
+    <!-- تفاصيل ومعلومات الفيلم -->
+    <div class="movie-details-info" id="movieDetailsContainer">
+        <!-- كيتعمر بـ الـ JS -->
     </div>
 
-    <div class="info-block">
-        <h1 id="detailTitle" style="font-size:1.8rem; margin-bottom:10px;"></h1>
-        <div class="hero-meta-row" id="detailMeta" style="justify-content:flex-start; margin-bottom:15px;"></div>
-        <p class="info-desc" id="detailOverview"></p>
-        <div id="specsBlock"></div>
+    <!-- سيكشن الأفلام المقترحة مستفة عمودياً بحال الصورة 28111.jpg -->
+    <div class="section-wrapper" style="padding: 0 5%;">
+        <div class="section-header" style="margin-bottom: 10px;">
+            <i class="fa-solid fa-square-play" style="color:var(--primary-cyan)"></i>
+            <h2 class="section-title" style="font-size:18px;">RECOMMENDED</h2>
+        </div>
+    </div>
+    
+    <div class="rec-list-container" id="recommendedList">
+        <!-- كيتعمر بـ الأسطر والافلام المقترحة هنا بـ الـ JS -->
     </div>
 
-    <h2 class="section-headline"><i class="fa-solid fa-bookmark"></i> Recommended</h2>
-    <div class="movie-grid" id="detailRecommended"></div>
-
-    <script src="js/script.js"></script>
-    <script src="js/movie.js"></script>
+    <script src="js/movie.js?v=1.2"></script>
 </body>
 </html>
