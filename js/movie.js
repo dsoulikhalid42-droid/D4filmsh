@@ -4,7 +4,7 @@ let currentType = 'movie';
 let currentSeason = 1;
 let currentEpisode = 1;
 let currentServer = 1;
-let isPlayerLoaded = false; // لم يتم التحميل الافتراضي
+let isPlayerLoaded = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -22,24 +22,24 @@ async function loadContentDetails() {
     const data = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}`).then(res => res.json());
     if (!data) return;
 
-    // إظهار بوستر الفيلم ف المشغل كـ غلاف مريح للعين قبل الضغط على البدء
+    // إظهار بوستر الفيلم كخلفية للمشغل قبل الضغط (مريح جداً للعين)
     const wrapper = document.querySelector('.video-player-wrapper');
     if (wrapper) {
         const bgImg = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '';
         wrapper.innerHTML = `
-            <div id="playPlaceholderBtn" onclick="activatePlayer()" style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('${bgImg}') center/cover; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <div style="width:70px; height:70px; background:var(--primary-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(0, 180, 216, 0.6); font-size:24px; color:#000; padding-left:5px;"><i class="fa-solid fa-play"></i></div>
+            <div id="playPlaceholderBtn" onclick="activatePlayer()" style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('${bgImg}') center/cover; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
+                <div style="width:75px; height:75px; background:var(--primary-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 25px rgba(0, 180, 216, 0.7); font-size:26px; color:#000; padding-left:5px;"><i class="fa-solid fa-play"></i></div>
             </div>
         `;
     }
 
-    // ربط زرار Watch Now الأساسي التحت باش حتى هو يشغل الفيديو فورا
+    // ربط زر Watch Now الأساسي التحتاني باش يشغل الفيديو فوراً
     const watchNowBtn = document.querySelector('.player-buttons button');
     if (watchNowBtn) {
         watchNowBtn.setAttribute('onclick', 'activatePlayer()');
     }
 
-    // تعبئة التفاصيل
+    // تفاصيل النصية
     const detailsContainer = document.getElementById('movieDetailsContainer');
     const year = currentType === 'movie' ? (data.release_date ? data.release_date.split('-')[0] : '2026') : (data.first_air_date ? data.first_air_date.split('-')[0] : '2026');
     const title = data.title || data.name;
@@ -57,7 +57,7 @@ async function loadContentDetails() {
         <div class="movie-sub-meta"><strong>Genre:</strong> ${genres}</div>
     `;
 
-    // قائمة المواسم والحلقات النقية للمسلسلات
+    // إدارة حلقات المسلسلات بنقاء كامل
     if (currentType === 'tv') {
         const tvContainer = document.getElementById('tvSelectorContainer');
         tvContainer.style.display = 'block';
@@ -80,17 +80,17 @@ async function loadContentDetails() {
         }
     }
 
-    // جلب المقترحات المنوعة (مخلطة)
+    // جلب المقترحات المنوعة لصفحة العرض
     const recs = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}/recommendations`).then(res => res.json());
     if (recs && recs.results) {
-        renderRecommendedList(recs.results.slice(0, 6));
+        renderRecommendedList(recs.results.slice(0, 8));
     }
 }
 
 function loadEpisodes(count) {
     const grid = document.getElementById('episodesGrid');
     grid.innerHTML = Array.from({length: count}, (_, i) => i + 1).map(ep => `
-        <button class="ep-btn" onclick="playEpisode(${ep})" style="padding:10px; background:#0b0c10; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:6px; cursor:pointer; font-weight:6px; font-size:13px; transition:all 0.2s;">Ep ${ep}</button>
+        <button class="ep-btn" onclick="playEpisode(${ep})" style="padding:10px; background:#0b0c10; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:6px; cursor:pointer; font-size:13px; transition:all 0.2s;">Ep ${ep}</button>
     `).join('');
     updateActiveEpStyle();
 }
@@ -120,7 +120,6 @@ function updateActiveEpStyle() {
     });
 }
 
-// تشغيل المشغل عند الضغط على أزرار البدء
 function activatePlayer() {
     isPlayerLoaded = true;
     updatePlayer();
@@ -131,14 +130,15 @@ function updatePlayer() {
     const wrapper = document.querySelector('.video-player-wrapper');
     let embedUrl = '';
 
+    // استخدام أفضل وأسرع سيرفرات vidsrc و vidfast حالياً
     if (currentType === 'movie') {
         embedUrl = currentServer === 1 
-            ? `https://vidsrc.cc/v2/embed/movie/${currentId}` 
-            : `https://multiembed.mov/?video_id=${currentId}&tmdb=1`;
+            ? `https://vidsrc.pro/embed/movie/${currentId}` 
+            : `https://vidsrc.to/embed/movie/${currentId}`;
     } else {
         embedUrl = currentServer === 1 
-            ? `https://vidsrc.cc/v2/embed/tv/${currentId}/${currentSeason}/${currentEpisode}` 
-            : `https://multiembed.mov/?video_id=${currentId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`;
+            ? `https://vidsrc.pro/embed/tv/${currentId}/${currentSeason}/${currentEpisode}` 
+            : `https://vidsrc.to/embed/tv/${currentId}/${currentSeason}/${currentEpisode}`;
     }
 
     wrapper.innerHTML = `<iframe src="${embedUrl}" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
