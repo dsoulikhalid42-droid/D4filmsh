@@ -1,152 +1,137 @@
 const API_PROXY = '/tmdb';
-let heroMovies = [];
+let heroSlidesData = [];
 let currentSlideIndex = 0;
-let sliderInterval;
+let slideInterval;
 
 document.addEventListener('DOMContentLoaded', () => {
-    initPlatform();
+    initD4Home();
 });
 
-async function callProxy(endpoint, additionalParams = {}) {
-    const queryParams = new URLSearchParams({ endpoint, ...additionalParams });
+async function initD4Home() {
     try {
-        const response = await fetch(`${API_PROXY}?${queryParams.toString()}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
-    } catch (err) {
-        console.error("Proxy failure:", err);
-        return null;
+        // 1. جلب بيانات الـ Trend الشاملة (أفلام ومسلسلات مخلطة)
+        const trendData = await fetch(`${API_PROXY}?endpoint=trending/all/week`).then(res => res.json());
+        
+        if (trendData && trendData.results && trendData.results.length > 0) {
+            const allItems = trendData.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+            
+            // خود أول 5 حبات ناضيين لـ الـ Hero Slider
+            heroSlidesData = allItems.slice(0, 5);
+            renderHeroSlider();
+            startHeroAutoplay();
+
+            // خود 20 حبة لـ سيكشن Trending Now (السلايدر الأفقي)
+            renderTrendingSlider(allItems.slice(0, 20));
+        }
+
+        // 2. جلب بيانات مستقلة وقوية لـ سيكشن Recommended (أفلام ومسلسلات رائجة ومستفة)
+        const topMovies = await fetch(`${API_PROXY}?endpoint=movie/popular`).then(res => res.json());
+        const topTV = await fetch(`${API_PROXY}?endpoint=tv/popular`).then(res => res.json());
+        
+        let recList = [];
+        if (topMovies && topMovies.results) recList = recList.concat(topMovies.results.map(m => ({...m, media_type: 'movie'})));
+        if (topTV && topTV.results) recList = recList.concat(topTV.results.map(t => ({...t, media_type: 'tv'})));
+        
+        // خلط البيانات باش تطلع منوعة ومريحة للعين (كمية مهمة: 18 حبة)
+        recList = recList.sort(() => 0.5 - Math.random()).slice(0, 18);
+        renderRecommendedGrid(recList);
+
+    } catch (error) {
+        console.error("Error loading home data:", error);
     }
 }
 
-async function initPlatform() {
-    // 1. صناعة شبكات الهياكل (Skeletons) بصفة مؤقتة
-    generateSkeletons();
+// رندرة الـ Hero Slider ديناميكياً
+function renderHeroSlider() {
+    const container = document.getElementById('heroSlider');
+    if (!container) return;
 
-    // 2. جلب البيانات من الـ API
-    const trendingData = await callProxy('trending/movie/day');
-    const topRatedData = await callProxy('movie/top_rated');
-    const popularData = await callProxy('movie/popular');
-    const actionData = await callProxy('discover/movie', { with_genres: '28' });
-
-    // 3. رندرة الـ Hero السلايدر
-    if (trendingData && trendingData.results && trendingData.results.length > 0) {
-        heroMovies = trendingData.results.slice(0, 5);
-        setupHeroSlider();
-        renderGrid('trendingGrid', trendingData.results);
-    }
-
-    // 4. رندرة باقي الأقسام
-    if (topRatedData && topRatedData.results) renderGrid('topRatedGrid', topRatedData.results);
-    if (popularData && popularData.results) renderGrid('popularGrid', popularData.results);
-    if (actionData && actionData.results) renderGrid('actionGrid', actionData.results);
-}
-
-function setupHeroSlider() {
-    const sliderContainer = document.getElementById('heroSliderContainer');
-    if (!sliderContainer) return;
-
-    sliderContainer.innerHTML = heroMovies.map((movie, index) => {
-        const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
-        const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '8.5';
-        const backdrop = `https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}`;
+    container.innerHTML = heroSlidesData.map((item, index) => {
+        const title = item.title || item.name;
+        const type = item.media_type;
+        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
+        const backdrop = `https://image.tmdb.org/t/p/original${item.backdrop_path}`;
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : '7.8';
         
         return `
-            <div class="hero-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${backdrop}')">
+            <div class="hero-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${backdrop}');">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
-                    <h1 class="hero-title">${movie.title}</h1>
+                    <h1 class="hero-title">${title}</h1>
                     <div class="hero-meta">
-                        <span class="badge-cyan">4K</span>
-                        <span class="badge-outline">TV-MA</span>
+                        <span class="badge-cyan">HD</span>
                         <span><i class="fa-solid fa-star rating-star"></i> ${rating}</span>
                         <span>${year}</span>
-                        <span>Movie</span>
+                        <span style="text-transform: uppercase;">${type === 'movie' ? 'Movie' : 'TV Show'}</span>
                     </div>
-                    <button class="btn-watch" onclick="window.location.href='movie.html?id=${movie.id}'">
-                        <i class="fa-solid fa-circle-play"></i> Watch Now
+                    <button class="btn-watch" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
+                        <i class="fa-solid fa-play"></i> Watch Now
                     </button>
                 </div>
             </div>
         `;
     }).join('');
-
-    if (sliderInterval) clearInterval(sliderInterval);
-    sliderInterval = setInterval(nextSlide, 4000);
 }
 
-function nextSlide() {
-    const slides = document.querySelectorAll('.hero-slide');
-    if (slides.length === 0) return;
-
-    slides[currentSlideIndex].classList.remove('active');
-    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
-    slides[currentSlideIndex].classList.add('active');
+// دالة التبديل التلقائي كل 4 ثواني
+function startHeroAutoplay() {
+    if (slideInterval) clearInterval(slideInterval);
+    slideInterval = setInterval(() => {
+        const slides = document.querySelectorAll('.hero-slide');
+        if (slides.length === 0) return;
+        
+        slides[currentSlideIndex].classList.remove('active');
+        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+        slides[currentSlideIndex].classList.add('active');
+    }, 4000); // 4000ms = 4 ثواني
 }
 
-function renderGrid(containerId, movies) {
-    const grid = document.getElementById(containerId);
-    if (!grid) return;
+// رندرة سلايدر Trending Now (20 حبة أفقية)
+function renderTrendingSlider(items) {
+    const slider = document.getElementById('trendingNowSlider');
+    if (!slider) return;
 
-    grid.innerHTML = movies.map(movie => {
-        const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
-        const poster = `https://image.tmdb.org/t/p/w342${movie.poster_path}`;
+    slider.innerHTML = items.map(item => {
+        const title = item.title || item.name;
+        const type = item.media_type;
+        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
+        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
         
         return `
-            <div class="movie-card" onclick="window.location.href='movie.html?id=${movie.id}'">
+            <div class="movie-card" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
                 <div class="poster-box" style="background-image: url('${poster}')">
                     <div class="hd-tag">HD</div>
                 </div>
                 <div class="card-info">
-                    <div class="card-meta">
-                        <span>${year}</span>
-                        <span>• Movie</span>
-                    </div>
-                    <div class="card-title">${movie.title}</div>
+                    <div class="card-meta"><span>${year}</span><span>• ${type === 'movie' ? 'Movie' : 'TV'}</span></div>
+                    <div class="card-title">${title}</div>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function generateSkeletons() {
-    const grids = ['trendingGrid', 'topRatedGrid', 'popularGrid', 'actionGrid'];
-    grids.forEach(id => {
-        const grid = document.getElementById(id);
-        if (grid) {
-            grid.innerHTML = Array(12).fill(`
-                <div class="movie-card">
-                    <div class="poster-box skeleton"></div>
-                    <div class="card-info">
-                        <div class="skeleton" style="height:12px; width:40%; margin-bottom:6px; border-radius:3px;"></div>
-                        <div class="skeleton" style="height:14px; width:80%; border-radius:3px;"></div>
-                    </div>
+// رندرة شبكة المقترحات لتحت (Grid ثابت ونقي)
+function renderRecommendedGrid(items) {
+    const grid = document.getElementById('recommendedGrid');
+    if (!grid) return;
+
+    grid.innerHTML = items.map(item => {
+        const title = item.title || item.name;
+        const type = item.media_type;
+        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
+        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
+        
+        return `
+            <div class="movie-card" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
+                <div class="poster-box" style="background-image: url('${poster}')">
+                    <div class="hd-tag">HD</div>
                 </div>
-            `).join('');
-        }
-    });
-}
-// جلب ورندرة المسلسلات ف الصفحة الرئيسية
-async function loadTrendingTV() {
-    const data = await callProxy('trending/tv/week');
-    const grid = document.getElementById('tvTrendingGrid');
-    if (grid && data && data.results) {
-        grid.innerHTML = data.results.slice(0, 6).map(tv => {
-            const year = tv.first_air_date ? tv.first_air_date.split('-')[0] : '2026';
-            const poster = tv.poster_path ? `https://image.tmdb.org/t/p/w342${tv.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
-            return `
-                <div class="movie-card" onclick="window.location.href='movie.html?id=${tv.id}&type=tv'">
-                    <div class="poster-box" style="background-image: url('${poster}')">
-                        <div class="hd-tag">HD</div>
-                    </div>
-                    <div class="card-info">
-                        <div class="card-meta"><span>${year}</span><span>• TV Show</span></div>
-                        <div class="card-title">${tv.name}</div>
-                    </div>
+                <div class="card-info">
+                    <div class="card-meta"><span>${year}</span><span>• ${type === 'movie' ? 'Movie' : 'TV'}</span></div>
+                    <div class="card-title">${title}</div>
                 </div>
-            `;
-        }).join('');
-    }
+            </div>
+        `;
+    }).join('');
 }
-// عيط ليها ف وسط الـ DOMContentLoaded مع الباقيين:
-loadTrendingTV();
