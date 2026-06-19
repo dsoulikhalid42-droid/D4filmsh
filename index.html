@@ -3,105 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D4FILMS - Watch Movies & TV Shows Free</title>
-    <!-- أيقونات FontAwesome -->
+    <title>D4FILMS - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- ملف الـ CSS الأساسي الموحد -->
-    <link rel="stylesheet" href="css/style.css?v=1.5">
+    <link rel="stylesheet" href="css/style.css?v=1.6">
 </head>
 <body>
 
-    <!-- الهيدر العصري (ثابت ف الفوق) -->
+    <!-- الهيدر -->
     <header>
         <a href="index.html" class="logo">D4<span>FILMS</span></a>
         <div class="nav-actions">
-            <!-- أيقونة البحث كتحول لصفحة البحث الفوري -->
-            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='search.html'" style="cursor: pointer;"></i>
-            <i class="fa-solid fa-bars" style="cursor: pointer;"></i>
+            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='search.html'"></i>
+            <i class="fa-solid fa-bars"></i>
         </div>
     </header>
 
-    <!-- السلايدر الرئيسي (Hero Slider) للأفلام والمسلسلات الرائجة -->
-    <div class="hero-slider-container">
-        <!-- السلايد الأول (مثال سينمائي) -->
-        <div class="hero-slide active" style="background-image: url('https://image.tmdb.org/t/p/original/5a4v6OFwCHwD8zS7vC562orGEZg.jpg');">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1 class="hero-title">Project Hail Mary</h1>
-                <div class="hero-meta">
-                    <span class="badge-cyan">4K</span>
-                    <span class="badge-outline">PG-13</span>
-                    <span><i class="fa-solid fa-star rating-star"></i> 8.7</span>
-                    <span>2026</span>
-                    <span>Sci-Fi / Drama</span>
-                </div>
-                <button class="btn-watch" onclick="window.location.href='movie.html?id=823219&type=movie'">
-                    <i class="fa-solid fa-play"></i> Watch Now
-                </button>
-            </div>
-        </div>
-        
-        <!-- غيتم التبديل أو شحن السلايدات ديناميكياً بـ JavaScript يلا بغيتي مستقبلاً -->
+    <!-- الـ Hero Slider الديناميكي -->
+    <div class="hero-slider-container" id="heroSlider">
+        <!-- غايعمر بـ JS بـ الأفلام والمسلسلات الرائجة -->
     </div>
 
-    <!-- المحتوى الرئيسي للمنصة -->
     <main class="main-content">
 
-        <!-- 1️⃣ سيكشن الأفلام الشائعة (Popular Movies) -->
+        <!-- 1️⃣ سيكشن Trending Now (على شكل Slide أفقي فيه 20 حبة) -->
         <div class="section-wrapper">
             <div class="section-header">
                 <i class="fa-solid fa-fire section-icon"></i>
-                <h2 class="section-title">Popular Movies</h2>
+                <h2 class="section-title">Trending Now</h2>
             </div>
-            <!-- شبكة الأفلام -->
-            <div class="movies-grid" id="moviesTrendingGrid">
-                <!-- الـ Skeleton LOADING الافتراضي مريح للعين حتى تجي البيانات -->
-                <div class="movie-card">
-                    <div class="poster-box skeleton"></div>
-                    <div class="card-info">
-                        <div class="skeleton" style="height:12px; width:40%; margin-bottom:6px; border-radius:3px;"></div>
-                        <div class="skeleton" style="height:14px; width:80%; border-radius:3px;"></div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <div class="poster-box skeleton"></div>
-                    <div class="card-info"><div class="skeleton" style="height:12px; width:30%; margin-bottom:6px;"></div><div class="skeleton" style="height:14px; width:70%;"></div></div>
-                </div>
-                <div class="movie-card">
-                    <div class="poster-box skeleton"></div>
-                    <div class="card-info"><div class="skeleton" style="height:12px; width:50%; margin-bottom:6px;"></div><div class="skeleton" style="height:14px; width:85%;"></div></div>
-                </div>
-                <div class="movie-card">
-                    <div class="poster-box skeleton"></div>
-                    <div class="card-info"><div class="skeleton" style="height:12px; width:40%; margin-bottom:6px;"></div><div class="skeleton" style="height:14px; width:75%;"></div></div>
-                </div>
+            <div class="trending-slider-wrapper" id="trendingNowSlider">
+                <!-- الـ Skeletons الافتراضية مريحة للعين -->
+                <div class="movie-card"><div class="poster-box skeleton"></div></div>
+                <div class="movie-card"><div class="poster-box skeleton"></div></div>
+                <div class="movie-card"><div class="poster-box skeleton"></div></div>
+                <div class="movie-card"><div class="poster-box skeleton"></div></div>
+                <div class="movie-card"><div class="poster-box skeleton"></div></div>
             </div>
         </div>
 
-        <!-- 2️⃣ سيكشن المسلسلات الرائجة الجديد (Trending TV Shows) -->
+        <!-- 2️⃣ سيكشن Recommended (كمية مهمة على شكل Grid مستف ماشي سلايد) -->
         <div class="section-wrapper">
             <div class="section-header">
-                <i class="fa-solid fa-tv section-icon"></i>
-                <h2 class="section-title">Trending TV Shows</h2>
+                <i class="fa-solid fa-star section-icon"></i>
+                <h2 class="section-title">Recommended For You</h2>
             </div>
-            <!-- شبكة المسلسلات غاتعمر بـ JS نقي وتوب -->
-            <div class="movies-grid" id="tvTrendingGrid">
-                <!-- سكيلتون المسلسلات قبل التحميل -->
-                <div class="movie-card"><div class="poster-box skeleton"></div><div class="card-info"><div class="skeleton" style="height:14px; width:70%;"></div></div></div>
-                <div class="movie-card"><div class="poster-box skeleton"></div><div class="card-info"><div class="skeleton" style="height:14px; width:70%;"></div></div></div>
-                <div class="movie-card"><div class="poster-box skeleton"></div><div class="card-info"><div class="skeleton" style="height:14px; width:70%;"></div></div></div>
-                <div class="movie-card"><div class="poster-box skeleton"></div><div class="card-info"><div class="skeleton" style="height:14px; width:70%;"></div></div></div>
+            <div class="movies-grid" id="recommendedGrid">
+                <!-- غايعمر بـ 18 لـ 20 كارت مستفين توب -->
             </div>
         </div>
 
     </main>
 
-    <!-- فوتر بسيط واحترافي -->
-    <footer style="text-align: center; padding: 25px 0; color: var(--text-gray); font-size: 13px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0c10;">
+    <footer style="text-align: center; padding: 25px 0; color: var(--text-gray); font-size: 13px; border-top: 1px solid rgba(255,255,255,0.05);">
         <p>&copy; 2026 D4FILMS. All rights reserved.</p>
     </footer>
 
-    <!-- سكريبت التشغيل وجلب البيانات من الـ Proxy -->
-    <script src="js/script.js?v=1.5"></script>
+    <script src="js/script.js?v=1.6"></script>
 </body>
 </html>
