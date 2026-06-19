@@ -4,12 +4,12 @@
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
-// جلب الـ ID والـ Type من رابط الصفحة (?id=123&type=movie)
+// جلب الـ ID والـ Type من رابط الصفحة
 const urlParams = new URLSearchParams(window.location.search);
 const mediaId = urlParams.get('id');
 const mediaType = urlParams.get('type') || 'movie'; 
 
-// السيرفرات المتاحة مع تفعيل الفول سكرين والترجمة
+// السيرفرات المتاحة مع تفعيل الفول سكرين والترجمة ومنع التقطيع
 const SERVERS = {
     server1: {
         movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
@@ -42,12 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-// 3. جلب البيانات من Cloudflare / TMDB وتوزيعها
+// 3. جلب البيانات من Cloudflare وتوزيعها (الرجوع للنظام القديم)
 // ==========================================================================
 async function fetchMediaDetails() {
     try {
-        // هنا كيتم جلب البيانات باستعمال الـ Variable المحمي ف Cloudflare بلا ما يبان الساروت
-        const response = await fetch(`/api/cloudflare-movie?id=${mediaId}&type=${mediaType}`);
+        // هنا رجعنا لطلب البيانات عبر الـ Proxy د Cloudflare كفما كان عندك ف الأول باش يخدم عادي
+        const response = await fetch(`/api/movie?id=${mediaId}&type=${mediaType}`);
         const data = await response.json();
         
         // تحديث النصوص في الـ HTML
@@ -94,11 +94,10 @@ function loadPlayer() {
         wrapper.classList.remove('tv-mode');
         embedUrl = SERVERS[currentServer].movie(mediaId);
     } else {
-        wrapper.classList.add('tv-mode'); // تفعيل الـ CSS الخارق للمسلسلات
+        wrapper.classList.add('tv-mode'); // كلاس الـ CSS اللي قاد الأبعاد د المسلسلات
         embedUrl = SERVERS[currentServer].tv(mediaId, currentSeason, currentEpisode);
     }
     
-    // حقن الـ iframe مع تفعيل كاع الـ Flags د Fullscreen والسماح بالترجمة ف التيليفون
     wrapper.innerHTML = `
         <iframe 
             src="${embedUrl}" 
@@ -158,8 +157,8 @@ async function fetchEpisodes(seasonNumber) {
     episodesGrid.innerHTML = '<div style="color:var(--text-gray); font-size:13px;">جاري تحميل الحلقات...</div>';
     
     try {
-        // جلب الحلقات عبر إرسال الطلب لـ Cloudflare لضمان الحماية
-        const response = await fetch(`/api/cloudflare-episodes?id=${mediaId}&season=${seasonNumber}`);
+        // العودة لمسار الـ Proxy لطلب الحلقات بشكل آمن ومخفي
+        const response = await fetch(`/api/episodes?id=${mediaId}&season=${seasonNumber}`);
         const data = await response.json();
         
         episodesGrid.innerHTML = '';
@@ -244,24 +243,20 @@ function renderRecommendations(items) {
         row.className = 'rec-item-row';
         
         const posterPath = item.poster_path ? `${IMAGE_URL}${item.poster_path}` : 'https://via.placeholder.com/60x85?text=No+Image';
-        const title = item.title || item.name;
-        const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
-        const rating = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
-        const type = item.media_type || mediaType;
         
         row.innerHTML = `
             <div class="rec-thumb" style="background-image: url('${posterPath}')"></div>
             <div class="rec-text-side">
                 <div class="rec-meta-line">
-                    <span><i class="fas fa-star" style="color:#ffb703;"></i> ${rating}</span> &nbsp;•&nbsp; 
-                    <span>${year}</span>
+                    <span><i class="fas fa-star" style="color:#ffb703;"></i> ${item.vote_average ? item.vote_average.toFixed(1) : '0.0'}</span> &nbsp;•&nbsp; 
+                    <span>${(item.release_date || item.first_air_date || '').split('-')[0] || 'N/A'}</span>
                 </div>
-                <div class="rec-movie-title">${title}</div>
+                <div class="rec-movie-title">${item.title || item.name}</div>
             </div>
         `;
         
         row.addEventListener('click', () => {
-            window.location.href = `movie-page.html?id=${item.id}&type=${type}`;
+            window.location.href = `movie-page.html?id=${item.id}&type=${item.media_type || mediaType}`;
         });
         
         recContainer.appendChild(row);
