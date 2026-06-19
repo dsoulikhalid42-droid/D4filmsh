@@ -1,125 +1,269 @@
-const API_PROXY = '/tmdb';
-let heroSlidesData = [];
-let currentSlideIndex = 0;
-let slideInterval;
+// ==========================================================================
+// 1. إعدادات وتكوين المعطيات (Configuration)
+// ==========================================================================
+const TMDB_API_KEY = 'YOUR_TMDB_API_KEY'; // حط الـ API Key ديالك هنا
+const BASE_URL = 'https://api.themoviedb.org/3';
+const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
+// جلب الـ ID والـ Type من رابط الصفحة (?id=123&type=movie)
+const urlParams = new URLSearchParams(window.location.search);
+const mediaId = urlParams.get('id');
+const mediaType = urlParams.get('type') || 'movie'; 
+
+// السيرفرات المتاحة بدون مشاكل التقطيع
+const SERVERS = {
+    server1: {
+        movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
+        tv: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
+    },
+    server2: {
+        movie: (id) => `https://embed.su/embed/movie/${id}`,
+        tv: (id, s, e) => `https://embed.su/embed/tv/${id}/${s}/${e}`
+    }
+};
+
+let currentServer = 'server1';
+let currentSeason = 1;
+let currentEpisode = 1;
+
+// ==========================================================================
+// 2. تشغيل الصفحة عند التحميل
+// ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    initD4Home();
+    if (!mediaId) {
+        console.error('Media ID missing');
+        return;
+    }
+    
+    // جلب داتا الفيلم أو المسلسل
+    fetchMediaDetails();
+    
+    // تفعيل أزرار السيرفرات
+    setupServerButtons();
 });
 
-async function initD4Home() {
+// ==========================================================================
+// 3. جلب البيانات من TMDB وتوزيعها
+// ==========================================================================
+async function fetchMediaDetails() {
     try {
-        // 1. جلب Trend السلايدر و الـ 20 حبة الفوقانية
-        const trendData = await fetch(`${API_PROXY}?endpoint=trending/all/week`).then(res => res.json());
+        const response = await fetch(`${BASE_URL}/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}&append_to_response=recommendations`);
+        const data = await response.json();
         
-        if (trendData && trendData.results) {
-            const allItems = trendData.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
-            
-            heroSlidesData = allItems.slice(0, 5);
-            renderHeroSlider();
-            startHeroAutoplay();
-
-            renderTrendingSlider(allItems.slice(0, 20));
+        // تحديث النصوص في الـ HTML
+        document.title = data.title || data.name;
+        document.getElementById('movieTitle').innerText = data.title || data.name;
+        document.getElementById('movieOverview').innerText = data.overview || 'لا يوجد وصف متاح حالياً.';
+        
+        const releaseYear = (data.release_date || data.first_air_date || '').split('-')[0] || 'N/A';
+        document.getElementById('movieYear').innerText = releaseYear;
+        document.getElementById('movieRating').innerText = data.vote_average ? data.vote_average.toFixed(1) : '0.0';
+        
+        const genres = data.genres.map(g => g.name).join(', ');
+        document.getElementById('movieGenres').innerText = genres;
+        
+        // تشغيل المشغل أول مرة
+        loadPlayer();
+        
+        // التحكم في إظهار وإخفاء سيكشن الحلقات والمواسم
+        if (mediaType === 'tv') {
+            renderTVSelector(data);
+        } else {
+            const selectorContainer = document.getElementById('tvSelectorContainer');
+            if (selectorContainer) selectorContainer.style.display = 'none';
         }
-
-        // 2. جلب كمية مهمة (40 حبة مخلطة) لـ سيكشن Recommended
-        const topMovies = await fetch(`${API_PROXY}?endpoint=movie/popular&page=1`).then(res => res.json());
-        const topMovies2 = await fetch(`${API_PROXY}?endpoint=movie/popular&page=2`).then(res => res.json());
-        const topTV = await fetch(`${API_PROXY}?endpoint=tv/popular&page=1`).then(res => res.json());
         
-        let recList = [];
-        if (topMovies && topMovies.results) recList = recList.concat(topMovies.results.map(m => ({...m, media_type: 'movie'})));
-        if (topMovies2 && topMovies2.results) recList = recList.concat(topMovies2.results.map(m => ({...m, media_type: 'movie'})));
-        if (topTV && topTV.results) recList = recList.concat(topTV.results.map(t => ({...t, media_type: 'tv'})));
+        // عرض المقترحات التحتية
+        renderRecommendations(data.recommendations?.results || []);
         
-        // خلط وعرض 40 حبة نيشاان
-        recList = recList.sort(() => 0.5 - Math.random()).slice(0, 40);
-        renderRecommendedGrid(recList);
-
     } catch (error) {
-        console.error("Error loading home data:", error);
+        console.error('Error fetching from TMDB:', error);
     }
 }
 
-function renderHeroSlider() {
-    const container = document.getElementById('heroSlider');
-    if (!container) return;
-    container.innerHTML = heroSlidesData.map((item, index) => {
-        const title = item.title || item.name;
-        const type = item.media_type;
-        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
-        const backdrop = `https://image.tmdb.org/t/p/original${item.backdrop_path}`;
-        return `
-            <div class="hero-slide ${index === 0 ? 'active' : ''}" style="background-image: url('${backdrop}');">
-                <div class="hero-overlay"></div>
-                <div class="hero-content">
-                    <h1 class="hero-title">${title}</h1>
-                    <div class="hero-meta">
-                        <span class="badge-cyan">HD</span>
-                        <span><i class="fa-solid fa-star rating-star"></i> ${item.vote_average?item.vote_average.toFixed(1):'7.8'}</span>
-                        <span>${year}</span>
-                        <span style="text-transform: uppercase;">${type === 'movie' ? 'Movie' : 'TV Show'}</span>
-                    </div>
-                    <button class="btn-watch" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
-                        <i class="fa-solid fa-play"></i> Watch Now
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
+// ==========================================================================
+// 4. دالة المشغل الذهبية (تفعيل التكبير والترجمة ومنع التقطيع)
+// ==========================================================================
+function loadPlayer() {
+    const wrapper = document.querySelector('.video-player-wrapper');
+    if (!wrapper) return;
+    
+    let embedUrl = '';
+    
+    if (mediaType === 'movie') {
+        // إذا كان فيلم عادي: إزالة كلاس التلفزة لحفظ الأبعاد السينمائية الأصلية
+        wrapper.classList.remove('tv-mode');
+        embedUrl = SERVERS[currentServer].movie(mediaId);
+    } else {
+        // إذا كان مسلسل: إضافة كلاس tv-mode لحل مشكلة التقطيع في الجوانب
+        wrapper.classList.add('tv-mode');
+        embedUrl = SERVERS[currentServer].tv(mediaId, currentSeason, currentEpisode);
+    }
+    
+    // حقن الـ iframe مع تفعيل كاع الـ Flags د Fullscreen والسماح بالترجمة ف التيليفون
+    wrapper.innerHTML = `
+        <iframe 
+            src="${embedUrl}" 
+            allowfullscreen="true" 
+            webkitallowfullscreen="true" 
+            mozallowfullscreen="true" 
+            oallowfullscreen="true" 
+            msallowfullscreen="true"
+            scrolling="no"
+            frameborder="0"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+        </iframe>
+    `;
 }
 
-function startHeroAutoplay() {
-    if (slideInterval) clearInterval(slideInterval);
-    slideInterval = setInterval(() => {
-        const slides = document.querySelectorAll('.hero-slide');
-        if (slides.length === 0) return;
-        slides[currentSlideIndex].classList.remove('active');
-        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
-        slides[currentSlideIndex].classList.add('active');
-    }, 4000);
+// ==========================================================================
+// 5. إدارة المواسم والحلقات (للمسلسلات)
+// ==========================================================================
+function renderTVSelector(data) {
+    const seasonSelect = document.getElementById('seasonSelect');
+    const episodesGrid = document.getElementById('episodesGrid');
+    
+    if (!seasonSelect || !episodesGrid) return;
+    
+    seasonSelect.innerHTML = '';
+    const seasons = data.seasons.filter(s => s.season_number > 0);
+    
+    if (seasons.length === 0 && data.seasons.length > 0) {
+        seasons.push(data.seasons[0]);
+    }
+    
+    seasons.forEach(season => {
+        const option = document.createElement('option');
+        option.value = season.season_number;
+        option.innerText = `Season ${season.season_number}`;
+        seasonSelect.appendChild(option);
+    });
+    
+    seasonSelect.addEventListener('change', (e) => {
+        currentSeason = parseInt(e.target.value);
+        currentEpisode = 1; 
+        fetchEpisodes(currentSeason);
+    });
+    
+    if (seasons.length > 0) {
+        currentSeason = seasons[0].season_number;
+        fetchEpisodes(currentSeason);
+    }
 }
 
-function renderTrendingSlider(items) {
-    const slider = document.getElementById('trendingNowSlider');
-    if (!slider) return;
-    slider.innerHTML = items.map(item => {
-        const title = item.title || item.name;
-        const type = item.media_type;
-        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
-        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
-        return `
-            <div class="movie-card" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
-                <div class="poster-box" style="background-image: url('${poster}')">
-                    <div class="hd-tag">HD</div>
-                </div>
-                <div class="card-info">
-                    <div class="card-meta"><span>${year}</span><span>• ${type==='movie'?'Movie':'TV'}</span></div>
-                    <div class="card-title">${title}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
+async function fetchEpisodes(seasonNumber) {
+    const episodesGrid = document.getElementById('episodesGrid');
+    if (!episodesGrid) return;
+    
+    episodesGrid.innerHTML = '<div style="color:var(--text-gray); font-size:13px;">جاري تحميل الحلقات...</div>';
+    
+    try {
+        const response = await fetch(`${BASE_URL}/tv/${mediaId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}`);
+        const data = await response.json();
+        
+        episodesGrid.innerHTML = '';
+        
+        data.episodes.forEach(ep => {
+            const btn = document.createElement('button');
+            btn.className = 'ep-btn';
+            btn.innerText = `Ep ${ep.episode_number}`;
+            
+            // ستايل الحلقة الشغالة حالياً
+            if (ep.episode_number === currentEpisode) {
+                btn.style.borderColor = 'var(--primary-cyan)';
+                btn.style.color = 'var(--primary-cyan)';
+                btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
+            }
+            
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ep-btn').forEach(b => {
+                    b.style.borderColor = '';
+                    b.style.color = '';
+                    b.style.backgroundColor = '';
+                });
+                
+                btn.style.borderColor = 'var(--primary-cyan)';
+                btn.style.color = 'var(--primary-cyan)';
+                btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
+                
+                currentEpisode = ep.episode_number;
+                loadPlayer(); // تحديث الفيديو
+            });
+            
+            episodesGrid.appendChild(btn);
+        });
+    } catch (error) {
+        episodesGrid.innerHTML = '<div style="color:#ef4444; font-size:13px;">خطأ في تحميل الحلقات.</div>';
+    }
 }
 
-function renderRecommendedGrid(items) {
-    const grid = document.getElementById('recommendedGrid');
-    if (!grid) return;
-    grid.innerHTML = items.map(item => {
+// ==========================================================================
+// 6. التبديل بين السيرفرات
+// ==========================================================================
+function setupServerButtons() {
+    const s1Btn = document.getElementById('server1Btn');
+    const s2Btn = document.getElementById('server2Btn');
+    
+    if (s1Btn && s2Btn) {
+        s1Btn.addEventListener('click', () => switchServer('server1', s1Btn, s2Btn));
+        s2Btn.addEventListener('click', () => switchServer('server2', s2Btn, s1Btn));
+    }
+}
+
+function switchServer(serverId, activeBtn, inactiveBtn) {
+    if (currentServer === serverId) return;
+    
+    currentServer = serverId;
+    
+    activeBtn.style.borderColor = 'var(--primary-cyan)';
+    activeBtn.style.color = 'var(--primary-cyan)';
+    
+    inactiveBtn.style.borderColor = '#64748b';
+    inactiveBtn.style.color = '#cbd5e1';
+    
+    loadPlayer();
+}
+
+// ==========================================================================
+// 7. عرض المقترحات (Recommendations)
+// ==========================================================================
+function renderRecommendations(items) {
+    const recContainer = document.getElementById('recommendationsContainer');
+    if (!recContainer) return;
+    
+    recContainer.innerHTML = '';
+    const limitedItems = items.slice(0, 5);
+    
+    if (limitedItems.length === 0) {
+        recContainer.innerHTML = '<div style="color:var(--text-gray); font-size:13px;">لا توجد مقترحات متوفرة.</div>';
+        return;
+    }
+    
+    limitedItems.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'rec-item-row';
+        
+        const posterPath = item.poster_path ? `${IMAGE_URL}${item.poster_path}` : 'https://via.placeholder.com/60x85?text=No+Image';
         const title = item.title || item.name;
-        const type = item.media_type;
-        const year = type === 'movie' ? (item.release_date ? item.release_date.split('-')[0] : '2026') : (item.first_air_date ? item.first_air_date.split('-')[0] : '2026');
-        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
-        return `
-            <div class="movie-card" onclick="window.location.href='movie.html?id=${item.id}&type=${type}'">
-                <div class="poster-box" style="background-image: url('${poster}')">
-                    <div class="hd-tag">HD</div>
+        const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
+        const type = item.media_type || mediaType;
+        
+        row.innerHTML = `
+            <div class="rec-thumb" style="background-image: url('${posterPath}')"></div>
+            <div class="rec-text-side">
+                <div class="rec-meta-line">
+                    <span><i class="fas fa-star" style="color:#ffb703;"></i> ${rating}</span> &nbsp;•&nbsp; 
+                    <span>${year}</span>
                 </div>
-                <div class="card-info">
-                    <div class="card-meta"><span>${year}</span><span>• ${type==='movie'?'Movie':'TV'}</span></div>
-                    <div class="card-title">${title}</div>
-                </div>
+                <div class="rec-movie-title">${title}</div>
             </div>
         `;
-    }).join('');
+        
+        row.addEventListener('click', () => {
+            window.location.href = `movie-page.html?id=${item.id}&type=${type}`;
+        });
+        
+        recContainer.appendChild(row);
+    });
 }
