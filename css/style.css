@@ -214,7 +214,6 @@ header {
     letter-spacing: 0.5px;
 }
 
-/* سلايدر أفقي نقي لـ Trending Now */
 .trending-slider-wrapper {
     display: flex;
     gap: 15px;
@@ -234,7 +233,6 @@ header {
     flex-shrink: 0;
 }
 
-/* شبكة المقترحات المستفة (Recommended Grid) */
 .movies-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -254,7 +252,6 @@ header {
     .movies-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
-/* كارت الفيلم والمسلسل الموحد */
 .movie-card {
     background-color: transparent;
     border-radius: 8px;
@@ -312,7 +309,6 @@ header {
     text-overflow: ellipsis;
 }
 
-/* تأثير الـ Skeleton */
 .skeleton {
     background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
     background-size: 200% 100%;
@@ -325,7 +321,7 @@ header {
 }
 
 /* ==========================================================================
-   5. ستايل صفحة التفاصيل والمشغل التفاعلي (حل نهائي لقص السواد)
+   5. ستايل المشغل (مقاد 100% للأفلام العادية والمسلسلات)
    ========================================================================== */
 .movie-page-body {
     padding-top: 60px; 
@@ -338,11 +334,11 @@ header {
     padding: 15px 12px 5px 12px;
 }
 
-/* الـ Wrapper بمقاس زوم مخصص لمنع تمدد شريط السيرفر الأسود ف الموبايل */
+/* الإطار الخارجي للمشغل: أبعاد سينمائية حقيقية ونظيفة للأفلام */
 .video-player-wrapper {
     position: relative;
     width: 100%;
-    height: 230px; /* إعطاء ارتفاع كافي لتنفس الفيديو */
+    padding-top: 56.25%; /* أبعاد 16:9 مضبوطة تماماً */
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
@@ -350,23 +346,22 @@ header {
     margin-bottom: 15px;
 }
 
-@media(min-width: 580px) {
-    .video-player-wrapper {
-        height: auto;
-        aspect-ratio: 16 / 9;
-    }
-}
-
-/* إجبار الـ iframe على كسر الحواف السوداء الظاهرة ف الصورة والتموقع ف السنتر */
+/* الـ iframe العادي للأفلام: كيشد البلاصة كاملة مريقل */
 .video-player-wrapper iframe {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 136%; /* تمديد الارتفاع لقص الحواف السوداء تلقائياً من الفوق والتحت */
+    height: 100%;
     border: none;
-    transform: translate(-50%, -50%) scale(1.02);
     display: block;
+}
+
+/* ⚡ كلاس سحري خاص بالمسلسلات فقط (كيتحكم فيه الـ JS) لقص السواد ف الموبايل */
+.video-player-wrapper.tv-mode iframe {
+    height: 135%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 /* أزرار المشاهدة والسيرفرات تحت المشغل */
