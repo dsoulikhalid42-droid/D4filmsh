@@ -309,19 +309,8 @@ header {
     text-overflow: ellipsis;
 }
 
-.skeleton {
-    background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
-    background-size: 200% 100%;
-    animation: loadingSkeleton 1.5s infinite;
-}
-
-@keyframes loadingSkeleton {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
 /* ==========================================================================
-   5. ستايل المشغل (مقاد 100% للأفلام العادية والمسلسلات)
+   5. ستايل المشغل (Premium Player Framework - No Cutting)
    ========================================================================== */
 .movie-page-body {
     padding-top: 60px; 
@@ -334,11 +323,11 @@ header {
     padding: 15px 12px 5px 12px;
 }
 
-/* الإطار الخارجي للمشغل: أبعاد سينمائية حقيقية ونظيفة للأفلام */
+/* الكونتينر الأساسي: أبعاد 16:9 حقيقية باش يبان كولشي ناضي والتحكم يخدم */
 .video-player-wrapper {
     position: relative;
     width: 100%;
-    padding-top: 56.25%; /* أبعاد 16:9 مضبوطة تماماً */
+    padding-top: 56.25%; /* مساحة كافية باش أزرار السيرفر متختفيش */
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
@@ -346,7 +335,7 @@ header {
     margin-bottom: 15px;
 }
 
-/* الـ iframe العادي للأفلام: كيشد البلاصة كاملة مريقل */
+/* الـ iframe العادي (للأفلام) */
 .video-player-wrapper iframe {
     position: absolute;
     top: 0;
@@ -357,11 +346,11 @@ header {
     display: block;
 }
 
-/* ⚡ كلاس سحري خاص بالمسلسلات فقط (كيتحكم فيه الـ JS) لقص السواد ف الموبايل */
+/* ⚡ كلاس خاص بالمسلسلات فقط يمنع التقطيع ويشيل الفراغات */
 .video-player-wrapper.tv-mode iframe {
-    height: 135%;
-    top: 50%;
-    transform: translateY(-50%);
+    height: 100%;
+    top: 0;
+    transform: none;
 }
 
 /* أزرار المشاهدة والسيرفرات تحت المشغل */
@@ -474,6 +463,7 @@ header {
 }
 
 .movie-story {
+    font-family: var(--font-main);
     font-size: 14px;
     color: var(--text-gray);
     line-height: 1.6;
