@@ -221,11 +221,11 @@ header {
     overflow-x: auto;
     scroll-behavior: smooth;
     padding: 5px 2px 15px 2px;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
 }
 
 .trending-slider-wrapper::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
+    display: none;
 }
 
 .trending-slider-wrapper .movie-card {
@@ -325,7 +325,7 @@ header {
 }
 
 /* ==========================================================================
-   5. ستايل صفحة التفاصيل والمشغل التفاعلي (مصلح ضد التقطيع)
+   5. ستايل صفحة التفاصيل والمشغل التفاعلي (مصلح 100% بدون حواف كحلة)
    ========================================================================== */
 .movie-page-body {
     padding-top: 60px; 
@@ -338,17 +338,22 @@ header {
     padding: 15px 12px 5px 12px;
 }
 
+/* المشغل بالأبعاد الذكية القاضية على الشريط الأسود */
 .video-player-wrapper {
     position: relative;
     width: 100%;
-    padding-top: 56.25%; /* أبعاد سينمائية حقيقية 16:9 */
+    aspect-ratio: 16 / 9; /* فرض أبعاد سينمائية مثالية متناسقة تلقائياً */
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 6px 30px rgba(0,0,0,0.8);
     margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* إجبار الـ iframe والـ video باش يغطيو المساحة كاملة وبلا حواف */
 .video-player-wrapper iframe {
     position: absolute;
     top: 0;
@@ -357,6 +362,7 @@ header {
     height: 100%;
     border: none;
     display: block;
+    transform: scale(1.02); /* تمديد بسيط جداً لتغطية أي فراغات من السيرفر */
 }
 
 /* أزرار المشاهدة والسيرفرات تحت المشغل */
@@ -393,13 +399,13 @@ header {
 }
 
 /* ==========================================================================
-   5. ميكس خاص بالمسلسلات وحلقاتها (TV Show Selector Settings)
+   6. سيكشن اختيار المواسم والحلقات (مستف ومصلح للموبايل)
    ========================================================================== */
 #tvSelectorContainer {
     width: 100%;
     max-width: 1000px;
     margin: 20px auto;
-    padding: 20px 15px;
+    padding: 15px;
     background-color: #151a22;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -407,8 +413,8 @@ header {
 
 #seasonSelect {
     width: 100%;
-    max-width: 250px;
-    padding: 12px;
+    max-width: 200px;
+    padding: 10px 12px;
     background-color: #0b0c10;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -417,7 +423,7 @@ header {
     font-weight: 600;
     outline: none;
     cursor: pointer;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: block;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -429,14 +435,14 @@ header {
 
 #episodesGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 8px;
     width: 100%;
 }
 
 .ep-btn {
     width: 100%;
-    height: 42px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -488,7 +494,7 @@ header {
 }
 
 /* ==========================================================================
-   6. قائمة المقترحات الجانبية/التحتية لصفحة العرض (Recommended List)
+   7. قائمة المقترحات الجانبية/التحتية لصفحة العرض (Recommended List)
    ========================================================================== */
 .rec-list-container {
     display: flex;
