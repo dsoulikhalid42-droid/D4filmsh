@@ -1,7 +1,6 @@
 // ==========================================================================
 // 1. إعدادات وتكوين المعطيات (Configuration)
 // ==========================================================================
-const TMDB_API_KEY = 'YOUR_TMDB_API_KEY'; // حط الـ API Key ديالك هنا
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
@@ -10,7 +9,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const mediaId = urlParams.get('id');
 const mediaType = urlParams.get('type') || 'movie'; 
 
-// السيرفرات المتاحة مع دعم ميزة Fullscreen والترجمة
+// السيرفرات المتاحة مع تفعيل الفول سكرين والترجمة
 const SERVERS = {
     server1: {
         movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
@@ -43,11 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-// 3. جلب البيانات من TMDB وتوزيعها
+// 3. جلب البيانات من Cloudflare / TMDB وتوزيعها
 // ==========================================================================
 async function fetchMediaDetails() {
     try {
-        const response = await fetch(`${BASE_URL}/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}&append_to_response=recommendations`);
+        // هنا كيتم جلب البيانات باستعمال الـ Variable المحمي ف Cloudflare بلا ما يبان الساروت
+        const response = await fetch(`/api/cloudflare-movie?id=${mediaId}&type=${mediaType}`);
         const data = await response.json();
         
         // تحديث النصوص في الـ HTML
@@ -59,7 +59,7 @@ async function fetchMediaDetails() {
         document.getElementById('movieYear').innerText = releaseYear;
         document.getElementById('movieRating').innerText = data.vote_average ? data.vote_average.toFixed(1) : '0.0';
         
-        const genres = data.genres.map(g => g.name).join(', ');
+        const genres = data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A';
         document.getElementById('movieGenres').innerText = genres;
         
         // تشغيل المشغل أول مرة
@@ -77,7 +77,7 @@ async function fetchMediaDetails() {
         renderRecommendations(data.recommendations?.results || []);
         
     } catch (error) {
-        console.error('Error fetching from TMDB:', error);
+        console.error('Error fetching data:', error);
     }
 }
 
@@ -91,12 +91,10 @@ function loadPlayer() {
     let embedUrl = '';
     
     if (mediaType === 'movie') {
-        // إذا كان فيلم عادي: إزالة كلاس التلفزة لحفظ الأبعاد السينمائية الأصلية
         wrapper.classList.remove('tv-mode');
         embedUrl = SERVERS[currentServer].movie(mediaId);
     } else {
-        // إذا كان مسلسل: إضافة كلاس tv-mode لحل مشكلة التقطيع في الجوانب
-        wrapper.classList.add('tv-mode');
+        wrapper.classList.add('tv-mode'); // تفعيل الـ CSS الخارق للمسلسلات
         embedUrl = SERVERS[currentServer].tv(mediaId, currentSeason, currentEpisode);
     }
     
@@ -126,6 +124,8 @@ function renderTVSelector(data) {
     if (!seasonSelect || !episodesGrid) return;
     
     seasonSelect.innerHTML = '';
+    
+    if (!data.seasons) return;
     const seasons = data.seasons.filter(s => s.season_number > 0);
     
     if (seasons.length === 0 && data.seasons.length > 0) {
@@ -158,40 +158,42 @@ async function fetchEpisodes(seasonNumber) {
     episodesGrid.innerHTML = '<div style="color:var(--text-gray); font-size:13px;">جاري تحميل الحلقات...</div>';
     
     try {
-        const response = await fetch(`${BASE_URL}/tv/${mediaId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}`);
+        // جلب الحلقات عبر إرسال الطلب لـ Cloudflare لضمان الحماية
+        const response = await fetch(`/api/cloudflare-episodes?id=${mediaId}&season=${seasonNumber}`);
         const data = await response.json();
         
         episodesGrid.innerHTML = '';
         
-        data.episodes.forEach(ep => {
-            const btn = document.createElement('button');
-            btn.className = 'ep-btn';
-            btn.innerText = `Ep ${ep.episode_number}`;
-            
-            // ستايل الحلقة الشغالة حالياً
-            if (ep.episode_number === currentEpisode) {
-                btn.style.borderColor = 'var(--primary-cyan)';
-                btn.style.color = 'var(--primary-cyan)';
-                btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
-            }
-            
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.ep-btn').forEach(b => {
-                    b.style.borderColor = '';
-                    b.style.color = '';
-                    b.style.backgroundColor = '';
+        if (data.episodes) {
+            data.episodes.forEach(ep => {
+                const btn = document.createElement('button');
+                btn.className = 'ep-btn';
+                btn.innerText = `Ep ${ep.episode_number}`;
+                
+                if (ep.episode_number === currentEpisode) {
+                    btn.style.borderColor = 'var(--primary-cyan)';
+                    btn.style.color = 'var(--primary-cyan)';
+                    btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
+                }
+                
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.ep-btn').forEach(b => {
+                        b.style.borderColor = '';
+                        b.style.color = '';
+                        b.style.backgroundColor = '';
+                    });
+                    
+                    btn.style.borderColor = 'var(--primary-cyan)';
+                    btn.style.color = 'var(--primary-cyan)';
+                    btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
+                    
+                    currentEpisode = ep.episode_number;
+                    loadPlayer(); 
                 });
                 
-                btn.style.borderColor = 'var(--primary-cyan)';
-                btn.style.color = 'var(--primary-cyan)';
-                btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
-                
-                currentEpisode = ep.episode_number;
-                loadPlayer(); // تحديث الفيديو
+                episodesGrid.appendChild(btn);
             });
-            
-            episodesGrid.appendChild(btn);
-        });
+        }
     } catch (error) {
         episodesGrid.innerHTML = '<div style="color:#ef4444; font-size:13px;">خطأ في تحميل الحلقات.</div>';
     }
@@ -214,10 +216,8 @@ function switchServer(serverId, activeBtn, inactiveBtn) {
     if (currentServer === serverId) return;
     
     currentServer = serverId;
-    
     activeBtn.style.borderColor = 'var(--primary-cyan)';
     activeBtn.style.color = 'var(--primary-cyan)';
-    
     inactiveBtn.style.borderColor = '#64748b';
     inactiveBtn.style.color = '#cbd5e1';
     
