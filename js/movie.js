@@ -1,80 +1,86 @@
+const API_PROXY = '/tmdb';
+
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    if (id) {
-        fetchMovieDetails(id);
+    const movieId = urlParams.get('id');
+    
+    if (movieId) {
+        loadMovieDetails(movieId);
+    } else {
+        window.location.href = 'index.html';
     }
 });
 
-async function fetchMovieDetails(id) {
+async function callProxy(endpoint, additionalParams = {}) {
+    const queryParams = new URLSearchParams({ endpoint, ...additionalParams });
+    try {
+        const response = await fetch(`${API_PROXY}?${queryParams.toString()}`);
+        return await response.json();
+    } catch (err) {
+        console.error("Proxy failure:", err);
+        return null;
+    }
+}
+
+async function loadMovieDetails(id) {
+    // 1. جلب بيانات الفيلم
     const movie = await callProxy(`movie/${id}`);
     if (!movie) return;
 
-    document.getElementById('mainPosterImg').src = `https://image.tmdb.org/t/p/w780${movie.poster_path}`;
-    document.getElementById('detailTitle').innerText = movie.title;
-    
-    document.getElementById('detailMeta').innerHTML = `
-        <span class="badge-cyan">4K</span>
-        <span class="badge-outline">M18</span>
-        <span><i class="fa-solid fa-star rating-star"></i> ${movie.vote_average.toFixed(1)}</span>
-        <span>${movie.release_date}</span>
-        <span>${movie.runtime}m</span>
-    `;
-    
-    document.getElementById('detailOverview').innerText = movie.overview;
-    
-    document.getElementById('specsBlock').innerHTML = `
-        <div class="meta-spec-item"><span>Type:</span> Movie</div>
-        <div class="meta-spec-item"><span>Genre:</span> ${movie.genres.map(g => g.name).join(', ')}</div>
+    // 2. تركيب المشغل مجاناً (Embed Player)
+    const playerWrapper = document.querySelector('.video-player-wrapper');
+    playerWrapper.innerHTML = `
+        <iframe src="https://vidsrc.to/embed/movie/${id}" allowfullscreen></iframe>
     `;
 
-    const triggerStreaming = () => {
-        const container = document.getElementById('streamContainer');
-        const frame = document.getElementById('embedFrame');
-        document.getElementById('posterArea').style.display = 'none';
-        container.classList.add('active');
-        
-        // Primary route setup
-        frame.src = `https://vidfast.pro/movie/${id}`;
-        
-        // Safety Fallback routing logic
-        setTimeout(() => {
-            try {
-                if(!frame.contentWindow || frame.contentWindow.length === 0) {
-                    frame.src = `https://vidsrc.xyz/embed/movie/${id}`;
-                }
-            } catch(e) {
-                // cross-origin catch
-            }
-        }, 3500);
-        
-        container.scrollIntoView({ behavior: 'smooth' });
-    };
+    // 3. تعبئة نصوص التفاصيل
+    const detailsContainer = document.getElementById('movieDetailsContainer');
+    const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
+    const genres = movie.genres ? movie.genres.map(g => g.name).join(', ') : 'N/A';
+    const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '7.5';
 
-    document.getElementById('centerPlay').addEventListener('click', triggerStreaming);
-    document.getElementById('watchAction').addEventListener('click', triggerStreaming);
-    
-    document.getElementById('downloadAction').addEventListener('click', () => {
-        window.open(`https://vidsrc.xyz/embed/movie/${id}`, '_blank');
-    });
+    detailsContainer.innerHTML = `
+        <h1 class="movie-main-title">${movie.title}</h1>
+        <div class="hero-meta" style="margin-bottom:10px;">
+            <span class="badge-cyan">4K</span>
+            <span class="badge-outline">TV-MA</span>
+            <span><i class="fa-solid fa-star rating-star"></i> ${rating}</span>
+            <span>${year}</span>
+            <span>1h 45min</span>
+        </div>
+        <p class="movie-story">${movie.overview || 'No overview available for this movie.'}</p>
+        <div class="movie-sub-meta"><strong>Type:</strong> Movie</div>
+        <div class="movie-sub-meta"><strong>Genre:</strong> ${genres}</div>
+    `;
 
-    // Recommendations rendering
-    const recData = await callProxy(`movie/${id}/similar`);
-    if (recData && recData.results.length > 0) {
-        const grid = document.getElementById('detailRecommended');
-        grid.innerHTML = recData.results.slice(0, 6).map(m => `
-            <div class="poster-card" onclick="window.location.href='movie.html?id=${m.id}'">
-                <div class="poster-wrapper" style="background-image: url('https://image.tmdb.org/t/p/w342${m.poster_path}')">
-                    <div class="hd-ribbon">HD</div>
-                </div>
-                <div class="card-details">
-                    <div class="card-meta-line">
-                        <span>${m.release_date ? m.release_date.split('-')[0] : '2026'}</span>
-                        <span>• Movie</span>
-                    </div>
-                    <div class="card-title">${m.title}</div>
+    // 4. جلب الأفلام المقترحة ورندرتها على شكل أسطر احترافية
+    const recommendations = await callProxy(`movie/${id}/recommendations`);
+    if (recommendations && recommendations.results) {
+        renderRecommendedList(recommendations.results.slice(0, 6)); // جلب أفضل 6 مقترحات
+    }
+}
+
+function renderRecommendedList(movies) {
+    const container = document.getElementById('recommendedList');
+    if (!container) return;
+
+    if (movies.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-gray); padding:0 5%;">No recommendations found.</p>';
+        return;
+    }
+
+    container.innerHTML = movies.map(movie => {
+        const year = movie.release_date ? movie.release_date.split('-')[0] : '2026';
+        const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w185${movie.poster_path}` : 'https://via.placeholder.com/185x278?text=No+Poster';
+        
+        return `
+            <div class="rec-item-row" onclick="window.location.href='movie.html?id=${movie.id}'">
+                <div class="rec-thumb" style="background-image: url('${poster}')"></div>
+                <div class="rec-text-side">
+                    <div class="rec-meta-line">Movie • ${year} • 120 min</div>
+                    <div class="rec-movie-title">${movie.title}</div>
                 </div>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
 }
