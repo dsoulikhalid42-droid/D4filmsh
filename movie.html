@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D4film - المشاهدة المباشرة</title>
+    <title>D4film - تفاصيل العرض</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -12,14 +12,14 @@
     <header>
         <a href="index.html" class="logo">D4<span>film</span></a>
         <div class="nav-actions">
-            <a href="index.html" style="color: #fff;"><i class="fas fa-home"></i></a>
+            <a href="index.html" style="color: #fff; font-size: 18px;"><i class="fas fa-home"></i></a>
         </div>
     </header>
 
     <main class="player-container">
         
         <div class="video-player-wrapper">
-            <div style="color:var(--text-gray); padding: 20px; text-align: center;">جاري تجهيز السيرفر...</div>
+            <div style="color:var(--text-gray); padding: 20px; text-align: center;">جاري تجهيز مشغل الفيديو...</div>
         </div>
 
         <div class="player-buttons">
@@ -32,28 +32,16 @@
         </div>
 
         <div id="tvSelectorContainer" style="display: none;">
-            <select id="seasonSelect">
-                </select>
-            <div id="episodesGrid">
-                </div>
+            <select id="seasonSelect"></select>
+            <div id="episodesGrid"></div>
         </div>
 
         <div class="movie-details-info">
-            <h1 id="movieTitle" class="movie-main-title">جاري التحميل...</h1>
-            
-            <div class="movie-sub-meta">
-                <strong>السنة:</strong> <span id="movieYear">-</span>
-            </div>
-            <div class="movie-sub-meta">
-                <strong>التقييم:</strong> <span id="movieRating">-</span> <i class="fas fa-star" style="color:#ffb703; font-size:12px;"></i>
-            </div>
-            <div class="movie-sub-meta">
-                <strong>النوع:</strong> <span id="movieGenres">-</span>
-            </div>
-
-            <p id="movieOverview" class="movie-story">
-                جاري جلب القصة والتفاصيل من الخادم...
-            </p>
+            <h1 id="movieTitle" class="movie-main-title">جاري تحميل العنوان...</h1>
+            <div class="movie-sub-meta"><strong>السنة:</strong> <span id="movieYear">-</span></div>
+            <div class="movie-sub-meta"><strong>التقييم:</strong> <span id="movieRating">-</span> <i class="fas fa-star" style="color:#ffb703; font-size:12px;"></i></div>
+            <div class="movie-sub-meta"><strong>النوع:</strong> <span id="movieGenres">-</span></div>
+            <p id="movieOverview" class="movie-story">جاري تحميل القصة والتفاصيل...</p>
         </div>
 
         <div class="section-wrapper" style="margin-top: 30px; padding: 0;">
@@ -61,12 +49,154 @@
                 <i class="fas fa-layer-group section-icon"></i>
                 <h2 class="section-title">عناوين مقترحة لك</h2>
             </div>
-            <div id="recommendationsContainer" class="rec-list-container" style="padding: 0;">
-                </div>
+            <div id="recommendationsContainer" class="rec-list-container" style="padding: 0;"></div>
         </div>
 
     </main>
 
-    <script src="js/script.js"></script>
+    <script>
+        const TMDB_API_KEY = '8495bc216c52a09f8742880c55455955'; 
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mediaId = urlParams.get('id');
+        const mediaType = urlParams.get('type') || 'movie'; 
+
+        const SERVERS = {
+            server1: {
+                movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
+                tv: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
+            },
+            server2: {
+                movie: (id) => `https://embed.su/embed/movie/${id}`,
+                tv: (id, s, e) => `https://embed.su/embed/tv/${id}/${s}/${e}`
+            }
+        };
+
+        let currentServer = 'server1';
+        let currentSeason = 1;
+        let currentEpisode = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!mediaId) return;
+            fetchMediaDetails();
+            setupServerButtons();
+        });
+
+        async function fetchMediaDetails() {
+            try {
+                const response = await fetch(`${BASE_URL}/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}&language=ar&append_to_response=recommendations`);
+                const data = await response.json();
+                
+                document.title = `شاهد ${data.title || data.name} - D4film`;
+                document.getElementById('movieTitle').innerText = data.title || data.name;
+                document.getElementById('movieOverview').innerText = data.overview || 'لا يوجد وصف متاح حالياً.';
+                document.getElementById('movieYear').innerText = (data.release_date || data.first_air_date || '----').split('-')[0];
+                document.getElementById('movieRating').innerText = data.vote_average ? data.vote_average.toFixed(1) : '0.0';
+                document.getElementById('movieGenres').innerText = data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A';
+                
+                loadPlayer();
+                
+                if (mediaType === 'tv') {
+                    renderTVSelector(data);
+                } else {
+                    document.getElementById('tvSelectorContainer').style.display = 'none';
+                }
+                
+                if (data.recommendations && data.recommendations.results) {
+                    renderRecommendations(data.recommendations.results);
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function loadPlayer() {
+            const wrapper = document.querySelector('.video-player-wrapper');
+            if (!wrapper) return;
+            let embedUrl = (mediaType === 'movie') ? SERVERS[currentServer].movie(mediaId) : SERVERS[currentServer].tv(mediaId, currentSeason, currentEpisode);
+            wrapper.innerHTML = `<iframe src="${embedUrl}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no" frameborder="0" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"></iframe>`;
+        }
+
+        function renderTVSelector(data) {
+            const seasonSelect = document.getElementById('seasonSelect');
+            const episodesGrid = document.getElementById('episodesGrid');
+            document.getElementById('tvSelectorContainer').style.display = 'block';
+            seasonSelect.innerHTML = '';
+            
+            const seasons = (data.seasons || []).filter(s => s.season_number > 0);
+            if (seasons.length === 0 && data.seasons && data.seasons.length > 0) seasons.push(data.seasons[0]);
+            
+            seasons.forEach(season => {
+                const option = document.createElement('option');
+                option.value = season.season_number;
+                option.innerText = `الموسم ${season.season_number}`;
+                seasonSelect.appendChild(option);
+            });
+            
+            seasonSelect.onchange = (e) => {
+                currentSeason = parseInt(e.target.value);
+                currentEpisode = 1; 
+                fetchEpisodes(currentSeason);
+            };
+            if (seasons.length > 0) { currentSeason = seasons[0].season_number; fetchEpisodes(currentSeason); }
+        }
+
+        async function fetchEpisodes(seasonNumber) {
+            const episodesGrid = document.getElementById('episodesGrid');
+            episodesGrid.innerHTML = '<div style="color:var(--text-gray); font-size:13px;">جاري تحميل الحلقات...</div>';
+            try {
+                const response = await fetch(`${BASE_URL}/tv/${mediaId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=ar`);
+                const data = await response.json();
+                episodesGrid.innerHTML = '';
+                (data.episodes || []).forEach(ep => {
+                    const btn = document.createElement('button');
+                    btn.className = 'ep-btn'; btn.innerText = `الحلقة ${ep.episode_number}`;
+                    if (ep.episode_number === currentEpisode) { btn.style.borderColor = 'var(--primary-cyan)'; btn.style.color = 'var(--primary-cyan)'; btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)'; }
+                    btn.onclick = () => {
+                        document.querySelectorAll('.ep-btn').forEach(b => { b.style.borderColor = ''; b.style.color = ''; b.style.backgroundColor = ''; });
+                        btn.style.borderColor = 'var(--primary-cyan)'; btn.style.color = 'var(--primary-cyan)'; btn.style.backgroundColor = 'rgba(0, 180, 216, 0.1)';
+                        currentEpisode = ep.episode_number; loadPlayer(); 
+                    };
+                    episodesGrid.appendChild(btn);
+                });
+            } catch (error) { episodesGrid.innerHTML = '<div style="color:#ef4444; font-size:13px;">خطأ.</div>'; }
+        }
+
+        function setupServerButtons() {
+            const s1Btn = document.getElementById('server1Btn');
+            const s2Btn = document.getElementById('server2Btn');
+            if (s1Btn && s2Btn) {
+                s1Btn.onclick = () => switchServer('server1', s1Btn, s2Btn);
+                s2Btn.onclick = () => switchServer('server2', s2Btn, s1Btn);
+            }
+        }
+
+        function switchServer(serverId, activeBtn, inactiveBtn) {
+            if (currentServer === serverId) return;
+            currentServer = serverId;
+            activeBtn.style.borderColor = 'var(--primary-cyan)'; activeBtn.style.color = 'var(--primary-cyan)';
+            inactiveBtn.style.borderColor = '#64748b'; inactiveBtn.style.color = '#cbd5e1';
+            loadPlayer();
+        }
+
+        function renderRecommendations(items) {
+            const recContainer = document.getElementById('recommendationsContainer');
+            recContainer.innerHTML = '';
+            items.slice(0, 5).forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'rec-item-row';
+                row.innerHTML = `
+                    <div class="rec-thumb" style="background-image: url('${item.poster_path ? IMAGE_URL + item.poster_path : 'https://via.placeholder.com/50x70?text=No+Image'}')"></div>
+                    <div class="rec-text-side">
+                        <div class="rec-meta-line"><span><i class="fas fa-star" style="color:#ffb703;"></i> ${(item.vote_average || 0).toFixed(1)}</span> • <span>${(item.release_date || item.first_air_date || '----').split('-')[0]}</span></div>
+                        <div class="rec-movie-title">${item.title || item.name}</div>
+                    </div>
+                `;
+                // هنا أيضاً تم تعديل الرابط لـ movie.html
+                row.onclick = () => { window.location.href = `movie.html?id=${item.id}&type=${item.media_type || mediaType}`; };
+                recContainer.appendChild(row);
+            });
+        }
+    </script>
 </body>
 </html>
