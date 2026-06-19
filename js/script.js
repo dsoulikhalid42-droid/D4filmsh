@@ -10,7 +10,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const mediaId = urlParams.get('id');
 const mediaType = urlParams.get('type') || 'movie'; 
 
-// السيرفرات المتاحة بدون مشاكل التقطيع
+// السيرفرات المتاحة مع دعم ميزة Fullscreen والترجمة
 const SERVERS = {
     server1: {
         movie: (id) => `https://vidsrc.to/embed/movie/${id}`,
