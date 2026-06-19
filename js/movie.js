@@ -1,9 +1,10 @@
 const API_PROXY = '/tmdb';
 let currentId = '';
-let currentType = 'movie'; // الافتراضي فيلم
+let currentType = 'movie';
 let currentSeason = 1;
 let currentEpisode = 1;
 let currentServer = 1;
+let isPlayerLoaded = false; // لم يتم التحميل الافتراضي
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,12 +19,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadContentDetails() {
-    // جلب البيانات على حسب النوع (movie أو tv)
     const data = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}`).then(res => res.json());
     if (!data) return;
 
-    // تشغيل السيرفر تلقائياً
-    updatePlayer();
+    // إظهار بوستر الفيلم ف المشغل كـ غلاف مريح للعين قبل الضغط على البدء
+    const wrapper = document.querySelector('.video-player-wrapper');
+    if (wrapper) {
+        const bgImg = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '';
+        wrapper.innerHTML = `
+            <div id="playPlaceholderBtn" onclick="activatePlayer()" style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('${bgImg}') center/cover; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <div style="width:70px; height:70px; background:var(--primary-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(0, 180, 216, 0.6); font-size:24px; color:#000; padding-left:5px;"><i class="fa-solid fa-play"></i></div>
+            </div>
+        `;
+    }
+
+    // ربط زرار Watch Now الأساسي التحت باش حتى هو يشغل الفيديو فورا
+    const watchNowBtn = document.querySelector('.player-buttons button');
+    if (watchNowBtn) {
+        watchNowBtn.setAttribute('onclick', 'activatePlayer()');
+    }
 
     // تعبئة التفاصيل
     const detailsContainer = document.getElementById('movieDetailsContainer');
@@ -43,31 +57,30 @@ async function loadContentDetails() {
         <div class="movie-sub-meta"><strong>Genre:</strong> ${genres}</div>
     `;
 
-    // التعامل مع مواسم وحلقات المسلسلات
+    // قائمة المواسم والحلقات النقية للمسلسلات
     if (currentType === 'tv') {
         const tvContainer = document.getElementById('tvSelectorContainer');
         tvContainer.style.display = 'block';
         
         const seasonSelect = document.getElementById('seasonSelect');
         seasonSelect.innerHTML = data.seasons.filter(s => s.season_number > 0).map(s => `
-            <option value="${s.season_number}">Season ${s.season_number} (${s.episode_count} Ep)</option>
+            <option value="${s.season_number}">Season ${s.season_number}</option>
         `).join('');
 
-        // عند تغيير الموسم، جلب الحلقات الخاصة بيه
         seasonSelect.addEventListener('change', (e) => {
             currentSeason = parseInt(e.target.value);
             currentEpisode = 1;
-            loadEpisodes(data.seasons.find(s => s.season_number === currentSeason).episode_count);
+            const targetS = data.seasons.find(s => s.season_number === currentSeason);
+            loadEpisodes(targetS ? targetS.episode_count : 1);
         });
 
-        // تحميل حلقات الموسم الأول افتراضياً
         if(data.seasons.length > 0) {
             const firstSeason = data.seasons.find(s => s.season_number === 1) || data.seasons[0];
             loadEpisodes(firstSeason.episode_count);
         }
     }
 
-    // جلب المقترحات
+    // جلب المقترحات المنوعة (مخلطة)
     const recs = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}/recommendations`).then(res => res.json());
     if (recs && recs.results) {
         renderRecommendedList(recs.results.slice(0, 6));
@@ -77,25 +90,44 @@ async function loadContentDetails() {
 function loadEpisodes(count) {
     const grid = document.getElementById('episodesGrid');
     grid.innerHTML = Array.from({length: count}, (_, i) => i + 1).map(ep => `
-        <button class="ep-btn ${ep === currentEpisode ? 'active' : ''}" onclick="playEpisode(${ep})" style="padding:6px; background:${ep === currentEpisode ? '#00b4d8':'#0b0c10'}; color:#fff; border:1px solid #374151; border-radius:4px; cursor:pointer;">${ep}</button>
+        <button class="ep-btn" onclick="playEpisode(${ep})" style="padding:10px; background:#0b0c10; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:6px; cursor:pointer; font-weight:6px; font-size:13px; transition:all 0.2s;">Ep ${ep}</button>
     `).join('');
+    updateActiveEpStyle();
 }
 
 function playEpisode(ep) {
     currentEpisode = ep;
-    // تحديث الأزرار النشطة
+    updateActiveEpStyle();
+    if(isPlayerLoaded) {
+        updatePlayer();
+    } else {
+        activatePlayer();
+    }
+}
+
+function updateActiveEpStyle() {
     const buttons = document.querySelectorAll('#episodesGrid button');
     buttons.forEach((btn, index) => {
-        if(index + 1 === ep) {
-            btn.style.background = '#00b4d8';
+        if(index + 1 === currentEpisode) {
+            btn.style.background = 'var(--primary-cyan)';
+            btn.style.color = '#000';
+            btn.style.borderColor = 'var(--primary-cyan)';
         } else {
             btn.style.background = '#0b0c10';
+            btn.style.color = '#fff';
+            btn.style.borderColor = 'rgba(255,255,255,0.08)';
         }
     });
+}
+
+// تشغيل المشغل عند الضغط على أزرار البدء
+function activatePlayer() {
+    isPlayerLoaded = true;
     updatePlayer();
 }
 
 function updatePlayer() {
+    if(!isPlayerLoaded) return;
     const wrapper = document.querySelector('.video-player-wrapper');
     let embedUrl = '';
 
@@ -111,14 +143,15 @@ function updatePlayer() {
 
     wrapper.innerHTML = `<iframe src="${embedUrl}" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
     
-    // ستايل السيرفر النشط
-    document.getElementById('srv1').style.borderColor = currentServer === 1 ? '#00b4d8' : '#64748b';
-    document.getElementById('srv2').style.borderColor = currentServer === 2 ? '#00b4d8' : '#64748b';
+    document.getElementById('srv1').style.color = currentServer === 1 ? 'var(--primary-cyan)' : '#cbd5e1';
+    document.getElementById('srv1').style.borderColor = currentServer === 1 ? 'var(--primary-cyan)' : '#64748b';
+    document.getElementById('srv2').style.color = currentServer === 2 ? 'var(--primary-cyan)' : '#cbd5e1';
+    document.getElementById('srv2').style.borderColor = currentServer === 2 ? 'var(--primary-cyan)' : '#64748b';
 }
 
 function switchServerLink(num) {
     currentServer = num;
-    updatePlayer();
+    if(isPlayerLoaded) updatePlayer();
 }
 
 function renderRecommendedList(movies) {
