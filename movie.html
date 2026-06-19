@@ -3,52 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Movie - D4FILMS</title>
+    <title>Watch - D4FILMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.2">
+    <link rel="stylesheet" href="css/style.css?v=1.4">
 </head>
 <body class="movie-page-body">
 
-    <!-- الهيدر ثابت -->
     <header>
         <a href="index.html" class="logo">D4<span>FILMS</span></a>
         <div class="nav-actions">
-            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='search.html'"></i>
-            <i class="fa-solid fa-bars"></i>
+            <i class="fa-solid fa-house" onclick="window.location.href='index.html'"></i>
         </div>
     </header>
 
-    <!-- حاوية المشغل -->
     <div class="player-container">
         <div class="video-player-wrapper">
-            <!-- غيتعمر الـ iframe هنا بـ السكريبت تلقائياً بـ API ديال vidsrc أو الفلم المختار -->
-            <div id="playerPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--text-gray);">Loading Player...</div>
+            <div id="playerPlaceholder">Loading Player...</div>
         </div>
     </div>
 
-    <!-- أزرار الأكشن التحت المشغل -->
-    <div class="player-buttons">
-        <button class="btn-player-action"><i class="fa-solid fa-play"></i> Watch Now</button>
+    <div class="player-buttons" style="flex-wrap: wrap;">
+        <button class="btn-player-action" style="background:var(--primary-cyan); color:#000;"><i class="fa-solid fa-play"></i> Watch Now</button>
         <button class="btn-player-action"><i class="fa-solid fa-download"></i> Download</button>
-    </div>
-
-    <!-- تفاصيل ومعلومات الفيلم -->
-    <div class="movie-details-info" id="movieDetailsContainer">
-        <!-- كيتعمر بـ الـ JS -->
-    </div>
-
-    <!-- سيكشن الأفلام المقترحة مستفة عمودياً بحال الصورة 28111.jpg -->
-    <div class="section-wrapper" style="padding: 0 5%;">
-        <div class="section-header" style="margin-bottom: 10px;">
-            <i class="fa-solid fa-square-play" style="color:var(--primary-cyan)"></i>
-            <h2 class="section-title" style="font-size:18px;">RECOMMENDED</h2>
+        
+        <div style="width: 100%; display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+            <span class="badge-outline" id="srv1" style="cursor:pointer; padding: 5px 12px;" onclick="switchServerLink(1)">Server 1</span>
+            <span class="badge-outline" id="srv2" style="cursor:pointer; padding: 5px 12px;" onclick="switchServerLink(2)">Server 2</span>
         </div>
     </div>
-    
-    <div class="rec-list-container" id="recommendedList">
-        <!-- كيتعمر بـ الأسطر والافلام المقترحة هنا بـ الـ JS -->
+
+    <div id="tvSelectorContainer" class="section-wrapper" style="display:none; background:#1f2833; padding:15px; border-radius:8px; margin: 15px 5%;">
+        <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <select id="seasonSelect" style="flex:1; padding:8px; background:#0b0c10; color:#fff; border:1px solid #455a64; border-radius:4px; outline:none;"></select>
+        </div>
+        <div id="episodesGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap:8px;">
+            </div>
     </div>
 
-    <script src="js/movie.js?v=1.2"></script>
+    <div class="movie-details-info" id="movieDetailsContainer"></div>
+
+    <div class="section-wrapper" style="padding: 0 5%;"><h2 class="section-title" style="font-size:16px;">RECOMMENDED</h2></div>
+    <div class="rec-list-container" id="recommendedList"></div>
+
+    <script src="js/movie.js?v=1.4"></script>
 </body>
 </html>
