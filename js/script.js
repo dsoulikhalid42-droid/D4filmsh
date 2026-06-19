@@ -126,3 +126,27 @@ function generateSkeletons() {
         }
     });
 }
+// جلب ورندرة المسلسلات ف الصفحة الرئيسية
+async function loadTrendingTV() {
+    const data = await callProxy('trending/tv/week');
+    const grid = document.getElementById('tvTrendingGrid');
+    if (grid && data && data.results) {
+        grid.innerHTML = data.results.slice(0, 6).map(tv => {
+            const year = tv.first_air_date ? tv.first_air_date.split('-')[0] : '2026';
+            const poster = tv.poster_path ? `https://image.tmdb.org/t/p/w342${tv.poster_path}` : 'https://via.placeholder.com/342x500?text=No+Poster';
+            return `
+                <div class="movie-card" onclick="window.location.href='movie.html?id=${tv.id}&type=tv'">
+                    <div class="poster-box" style="background-image: url('${poster}')">
+                        <div class="hd-tag">HD</div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-meta"><span>${year}</span><span>• TV Show</span></div>
+                        <div class="card-title">${tv.name}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+// عيط ليها ف وسط الـ DOMContentLoaded مع الباقيين:
+loadTrendingTV();
