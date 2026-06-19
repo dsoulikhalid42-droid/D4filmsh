@@ -1,5 +1,5 @@
 /* ==========================================================================
-   1. المتغيرات والخطوط الأساسية (FMovies Style)
+   1. المتغيرات والخطوط الأساسية (Premium Dark Cinema Style)
    ========================================================================== */
 :root {
     --body-bg: #0b0c10;
@@ -26,7 +26,7 @@ body {
 }
 
 /* ==========================================================================
-   2. الهيدر واللوغو والnavigation
+   2. الهيدر واللوغو والـ Navigation
    ========================================================================== */
 header {
     position: fixed;
@@ -75,7 +75,7 @@ header {
 }
 
 /* ==========================================================================
-   3. السلايدر الرئيسي (Hero Slider) فـ الصفحة الرئيسية
+   3. السلايدر الرئيسي ديناميكي (Hero Slider)
    ========================================================================== */
 .hero-slider-container {
     position: relative;
@@ -95,14 +95,15 @@ header {
     background-size: cover;
     background-position: center 20%;
     opacity: 0;
-    transition: opacity 0.8s ease-in-out;
+    transition: opacity 1s ease-in-out;
     display: flex;
     align-items: flex-end;
+    z-index: 1;
 }
 
 .hero-slide.active {
     opacity: 1;
-    z-index: 1;
+    z-index: 2;
 }
 
 .hero-overlay {
@@ -111,12 +112,12 @@ header {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to top, #0b0c10 5%, rgba(11,12,16,0.6) 50%, rgba(11,12,16,0.4) 100%);
+    background: linear-gradient(to top, #0b0c10 5%, rgba(11,12,16,0.5) 50%, rgba(11,12,16,0.3) 100%);
 }
 
 .hero-content {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     padding: 0 5% 40px 5%;
     max-width: 600px;
 }
@@ -127,7 +128,7 @@ header {
     font-weight: 700;
     margin-bottom: 12px;
     color: var(--text-white);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.8);
 }
 
 .hero-meta {
@@ -152,7 +153,7 @@ header {
 .badge-outline {
     border: 1px solid #64748b;
     color: #cbd5e1;
-    padding: 1px 5px;
+    padding: 1px 6px;
     border-radius: 3px;
     font-size: 11px;
 }
@@ -182,14 +183,14 @@ header {
 }
 
 /* ==========================================================================
-   4. ركائز الأقسام والـ Grids للأفلام
+   4. الأقسام وهيكلة الـ Grids والـ Sliders الأفقية
    ========================================================================== */
 .main-content {
-    padding: 30px 0;
+    padding: 20px 0;
 }
 
 .section-wrapper {
-    margin-bottom: 35px;
+    margin-bottom: 30px;
     padding: 0 5%;
 }
 
@@ -197,7 +198,7 @@ header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 15px;
 }
 
 .section-icon {
@@ -213,23 +214,47 @@ header {
     letter-spacing: 0.5px;
 }
 
+/* سلايدر أفقي نقي لـ Trending Now */
+.trending-slider-wrapper {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 5px 2px 15px 2px;
+    scrollbar-width: none; /* Firefox */
+}
+
+.trending-slider-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+
+.trending-slider-wrapper .movie-card {
+    min-width: 140px;
+    max-width: 140px;
+    flex-shrink: 0;
+}
+
+/* شبكة المقترحات المستفة (Recommended Grid) */
 .movies-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* تليفون */
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
 
 @media(min-width: 480px) {
     .movies-grid { grid-template-columns: repeat(3, 1fr); }
+    .trending-slider-wrapper .movie-card { min-width: 150px; max-width: 150px; }
 }
 @media(min-width: 768px) {
     .movies-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .trending-slider-wrapper { gap: 20px; }
+    .trending-slider-wrapper .movie-card { min-width: 170px; max-width: 170px; }
 }
 @media(min-width: 1024px) {
     .movies-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
-/* كارت الفيلم */
+/* كارت الفيلم والمسلسل الموحد */
 .movie-card {
     background-color: transparent;
     border-radius: 8px;
@@ -245,11 +270,12 @@ header {
 .poster-box {
     position: relative;
     width: 100%;
-    padding-top: 145%; /* أبعاد البوستر */
+    padding-top: 145%;
     background-size: cover;
     background-position: center;
     background-color: #1a1f26;
     border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .hd-tag {
@@ -260,8 +286,9 @@ header {
     color: #000;
     font-size: 10px;
     font-weight: 800;
-    padding: 2px 4px;
+    padding: 2px 5px;
     border-radius: 3px;
+    text-transform: uppercase;
 }
 
 .card-info {
@@ -272,6 +299,8 @@ header {
     font-size: 11px;
     color: var(--text-gray);
     margin-bottom: 4px;
+    display: flex;
+    gap: 5px;
 }
 
 .card-title {
@@ -296,7 +325,7 @@ header {
 }
 
 /* ==========================================================================
-   5. ستايل صفحة تفاصيل الفيلم والمشغل السينمائي (Movie Page)
+   5. ستايل صفحة التفاصيل والمشغل التفاعلي
    ========================================================================== */
 .movie-page-body {
     padding-top: 60px; 
@@ -306,17 +335,17 @@ header {
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 12px;
+    padding: 15px 12px 5px 12px;
 }
 
 .video-player-wrapper {
     position: relative;
     width: 100%;
-    padding-top: 56.25%; /* أبعاد شاشة 16:9 السينمائية */
+    padding-top: 56.25%; /* أبعاد 16:9 السينمائية */
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 25px rgba(0,0,0,0.8);
+    box-shadow: 0 6px 30px rgba(0,0,0,0.8);
 }
 
 .video-player-wrapper iframe {
@@ -328,13 +357,13 @@ header {
     border: none;
 }
 
-/* أزرار الأكشن تحت الفيديو */
+/* أزرار المشاهدة والتحميل تحت المشغل */
 .player-buttons {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin: 15px 0;
-    padding: 0 15px;
+    padding: 0 5%;
 }
 
 .btn-player-action {
@@ -343,7 +372,7 @@ header {
     background: transparent;
     border: 1.5px solid var(--primary-cyan);
     color: var(--text-white);
-    padding: 10px;
+    padding: 11px;
     border-radius: 6px;
     font-size: 13px;
     font-weight: 600;
@@ -352,15 +381,16 @@ header {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.3s, color 0.3s;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
 }
 
 .btn-player-action:hover {
     background-color: var(--primary-cyan);
     color: #000;
+    transform: translateY(-2px);
 }
 
-/* النصوص والمعلومات د الفيلم */
+/* معطيات وتفاصيل النصية */
 .movie-details-info {
     padding: 15px 5%;
 }
@@ -393,7 +423,7 @@ header {
 }
 
 /* ==========================================================================
-   6. قائمة المقترحات الاحترافية المستفة (Recommended List Layout)
+   6. قائمة المقترحات الجانبية/التحتية لصفحة العرض (Recommended List)
    ========================================================================== */
 .rec-list-container {
     display: flex;
