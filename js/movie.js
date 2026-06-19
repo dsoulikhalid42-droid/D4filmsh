@@ -3,7 +3,7 @@ let currentId = '';
 let currentType = 'movie';
 let currentSeason = 1;
 let currentEpisode = 1;
-let currentServer = 1;
+let currentServer = 1; // غايبدا بالسيرفر المريقل أوتوماتيكياً
 let isPlayerLoaded = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,7 +22,7 @@ async function loadContentDetails() {
     const data = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}`).then(res => res.json());
     if (!data) return;
 
-    // إظهار بوستر الفيلم كخلفية للمشغل قبل الضغط (مريح جداً للعين)
+    // إظهار بوستر الفيلم كخلفية للمشغل قبل الضغط
     const wrapper = document.querySelector('.video-player-wrapper');
     if (wrapper) {
         const bgImg = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '';
@@ -33,7 +33,7 @@ async function loadContentDetails() {
         `;
     }
 
-    // ربط زر Watch Now الأساسي التحتاني باش يشغل الفيديو فوراً
+    // ربط زر Watch Now الأساسي التحتاني
     const watchNowBtn = document.querySelector('.player-buttons button');
     if (watchNowBtn) {
         watchNowBtn.setAttribute('onclick', 'activatePlayer()');
@@ -57,7 +57,7 @@ async function loadContentDetails() {
         <div class="movie-sub-meta"><strong>Genre:</strong> ${genres}</div>
     `;
 
-    // إدارة حلقات المسلسلات بنقاء كامل
+    // إدارة حلقات المسلسلات
     if (currentType === 'tv') {
         const tvContainer = document.getElementById('tvSelectorContainer');
         tvContainer.style.display = 'block';
@@ -80,7 +80,7 @@ async function loadContentDetails() {
         }
     }
 
-    // جلب المقترحات المنوعة لصفحة العرض
+    // جلب المقترحات
     const recs = await fetch(`${API_PROXY}?endpoint=${currentType}/${currentId}/recommendations`).then(res => res.json());
     if (recs && recs.results) {
         renderRecommendedList(recs.results.slice(0, 8));
@@ -130,19 +130,30 @@ function updatePlayer() {
     const wrapper = document.querySelector('.video-player-wrapper');
     let embedUrl = '';
 
-    // استخدام أفضل وأسرع سيرفرات vidsrc و vidfast حالياً
+    // هنا قلبنا السيرفرات: السيرفر vidsrc.to (Vidfast) رجع هو رقم 1 حيت خدام ومستقر أوتوماتيكياً
     if (currentType === 'movie') {
         embedUrl = currentServer === 1 
-            ? `https://vidsrc.pro/embed/movie/${currentId}` 
-            : `https://vidsrc.to/embed/movie/${currentId}`;
+            ? `https://vidsrc.to/embed/movie/${currentId}` 
+            : `https://vidsrc.pro/embed/movie/${currentId}`;
     } else {
         embedUrl = currentServer === 1 
-            ? `https://vidsrc.pro/embed/tv/${currentId}/${currentSeason}/${currentEpisode}` 
-            : `https://vidsrc.to/embed/tv/${currentId}/${currentSeason}/${currentEpisode}`;
+            ? `https://vidsrc.to/embed/tv/${currentId}/${currentSeason}/${currentEpisode}` 
+            : `https://vidsrc.pro/embed/tv/${currentId}/${currentSeason}/${currentEpisode}`;
     }
 
-    wrapper.innerHTML = `<iframe src="${embedUrl}" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
+    // هنا زدنا كاع الصلاحيات (fullscreen, picture-in-picture, etc.) باش تظهر أزرار التكبير والترجمة كاملة وماتجيش مقطوعة ف الموبايل
+    wrapper.innerHTML = `
+        <iframe src="${embedUrl}" 
+                allowfullscreen="true" 
+                webkitallowfullscreen="true" 
+                mozallowfullscreen="true" 
+                scrolling="no"
+                allow="autoplay; fullscreen; picture-in-picture"
+                style="position:absolute; top:0; left:0; width:100%; height:100%; border:none; z-index:5;">
+        </iframe>
+    `;
     
+    // تحديث ألوان أزرار السيرفرات
     document.getElementById('srv1').style.color = currentServer === 1 ? 'var(--primary-cyan)' : '#cbd5e1';
     document.getElementById('srv1').style.borderColor = currentServer === 1 ? 'var(--primary-cyan)' : '#64748b';
     document.getElementById('srv2').style.color = currentServer === 2 ? 'var(--primary-cyan)' : '#cbd5e1';
