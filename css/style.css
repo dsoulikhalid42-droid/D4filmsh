@@ -325,7 +325,7 @@ header {
 }
 
 /* ==========================================================================
-   5. ستايل صفحة التفاصيل والمشغل التفاعلي
+   5. ستايل صفحة التفاصيل والمشغل التفاعلي (مصلح ضد التقطيع)
    ========================================================================== */
 .movie-page-body {
     padding-top: 60px; 
@@ -338,16 +338,19 @@ header {
     padding: 15px 12px 5px 12px;
 }
 
+/* المشغل بالأبعاد الكاملة 16:9 مع منع التقطيع والمشاكل ف الموبايل */
 .video-player-wrapper {
     position: relative;
     width: 100%;
-    padding-top: 56.25%; /* أبعاد 16:9 السينمائية */
+    padding-top: 56.25%; /* أبعاد سينمائية حقيقية */
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 6px 30px rgba(0,0,0,0.8);
+    margin-bottom: 10px;
 }
 
+/* تعديل الـ iframe باش ياخد المساحة كاملة بدون أي قص للحواف أو الأزرار التحتانية */
 .video-player-wrapper iframe {
     position: absolute;
     top: 0;
@@ -355,24 +358,25 @@ header {
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
 }
 
-/* أزرار المشاهدة والتحميل تحت المشغل */
+/* أزرار المشاهدة والسيرفرات تحت المشغل */
 .player-buttons {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     margin: 15px 0;
-    padding: 0 5%;
+    padding: 0 4%;
 }
 
 .btn-player-action {
     flex: 1;
     max-width: 180px;
     background: transparent;
-    border: 1.5px solid var(--primary-cyan);
-    color: var(--text-white);
-    padding: 11px;
+    border: 1.5px solid #64748b;
+    color: #cbd5e1;
+    padding: 10px;
     border-radius: 6px;
     font-size: 13px;
     font-weight: 600;
@@ -381,13 +385,13 @@ header {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.3s, color 0.3s, transform 0.2s;
+    transition: all 0.2s ease;
 }
 
 .btn-player-action:hover {
-    background-color: var(--primary-cyan);
-    color: #000;
-    transform: translateY(-2px);
+    border-color: var(--primary-cyan);
+    color: var(--primary-cyan);
+    transform: translateY(-1px);
 }
 
 /* معطيات وتفاصيل النصية */
